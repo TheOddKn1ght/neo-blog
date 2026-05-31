@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /yo
+
+Sitemap: https://oddknight.space/sitemap.xml

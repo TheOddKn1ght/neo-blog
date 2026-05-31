@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 512 512" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g id="Layer-1" vectornator:layerName="Layer 1">
+<path d="M24.3656 256C24.3656 128.072 128.072 24.3656 256 24.3656C383.928 24.3656 487.634 128.072 487.634 256C487.634 383.928 383.928 487.634 256 487.634C128.072 487.634 24.3656 383.928 24.3656 256ZM123.391 388.817L122.754 352.94C122.754 352.94 122.754 339.908 127.634 332.501C131.378 326.818 132.524 324.855 142.401 315.002C190.131 267.384 284.36 172.81 284.36 172.81L337.03 227.137L200.173 363.694C200.173 363.694 191.084 373.639 181.954 381.874C176.277 386.994 167.664 387.79 167.664 387.79L123.391 388.817ZM307.916 150.365L360.118 204.173L379.622 185.123C379.622 185.123 402.816 162.864 377.189 136.474C351.219 109.732 327.596 131.613 327.596 131.613L307.916 150.365Z" fill="none" opacity="1" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round" stroke-width="25" vectornator:layerName="Curve 1"/>
+</g>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "name": "oddknight-space",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run build.ts",
+    "serve": "bun run server.ts",
+    "dev": "bun run build.ts --watch & bun run --watch server.ts",
+    "start": "bun run build.ts && bun run server.ts"
+  },
+  "dependencies": {
+    "marked": "14.1.4",
+    "svelte": "5.55.10"
+  }
+}
