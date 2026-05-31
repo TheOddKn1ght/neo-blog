@@ -219,7 +219,7 @@ async function buildGallery(): Promise<string[]> {
 
 async function buildClient(): Promise<void> {
   const result = await Bun.build({
-    entrypoints: [join(SRC, "main.ts")],
+    entrypoints: [join(SRC, "index.ts")],
     outdir: DIST,
     plugins: [sveltePlugin],
     target: "browser",
@@ -262,7 +262,7 @@ async function writeIndexHtml(): Promise<void> {
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
     <link rel="stylesheet" href="/css/style.css" />
-    <script type="module" src="/main.js"></script>
+    <script type="module" src="/index.js"></script>
   </head>
   <body></body>
 </html>
