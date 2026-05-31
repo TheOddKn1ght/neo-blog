@@ -107,6 +107,14 @@ function rfc822(date: string): string {
   return (Number.isNaN(d.getTime()) ? new Date() : d).toUTCString();
 }
 
+function minifyHtml(html: string): string {
+  return html
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/>\s+</g, "><")
+    .trim();
+}
+
 async function writeSitemap(posts: PostMeta[]): Promise<void> {
   const today = new Date().toISOString().slice(0, 10);
   const lines: string[] = [];
@@ -225,6 +233,19 @@ async function buildClient(): Promise<void> {
   }
 }
 
+async function minifyCss(): Promise<void> {
+  const result = await Bun.build({
+    entrypoints: [join(STATIC, "css", "style.css")],
+    outdir: join(DIST, "css"),
+    minify: true,
+    naming: "[name].[ext]",
+  });
+  if (!result.success) {
+    for (const log of result.logs) console.error(log);
+    throw new Error("css minify failed");
+  }
+}
+
 async function writeIndexHtml(): Promise<void> {
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -246,7 +267,7 @@ async function writeIndexHtml(): Promise<void> {
   <body></body>
 </html>
 `;
-  await writeFile(join(DIST, "index.html"), html);
+  await writeFile(join(DIST, "index.html"), minifyHtml(html));
 }
 
 async function main(): Promise<void> {
@@ -254,6 +275,7 @@ async function main(): Promise<void> {
   await mkdir(DIST, { recursive: true });
 
   await cp(STATIC, DIST, { recursive: true });
+  await minifyCss();
 
   const [posts, gallery] = await Promise.all([buildPosts(), buildGallery()]);
   await buildPages();
