@@ -1,21 +1,19 @@
-<script>
+<script lang="ts">
   import { onMount, tick } from "svelte";
   import { setMeta } from "../router";
   import ScrollTop from "../components/ScrollTop.svelte";
   import { installLazyLoad } from "../behaviors/lazyLoad";
   import { installEnlarge } from "../behaviors/enlarge";
 
-  let images = $state([]);
-  let modalImg;
-  let modal;
-  let teardownLazy;
-  let teardownEnlarge;
+  let images: string[] = $state([]);
+  let teardownLazy: (() => void) | undefined;
+  let teardownEnlarge: (() => void) | undefined;
 
   onMount(async () => {
     setMeta("Gallery", "OddKnight's silly ugly photos");
     try {
       const r = await fetch("/content/index.json");
-      const data = await r.json();
+      const data: { gallery?: string[] } = await r.json();
       images = data.gallery ?? [];
     } catch {}
     await tick();

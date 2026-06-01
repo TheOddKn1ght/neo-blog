@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { setMeta } from "../router";
 
-  let rotated = $state(false);
+  let rotated: boolean = $state(false);
 
   onMount(() => {
     setMeta("The yo™ page");
@@ -12,7 +12,7 @@
     };
   });
 
-  function onYo() {
+  function onYo(): void {
     document.body.style.transition = "3s";
     document.body.style.transform = rotated ? "rotate(0deg)" : "rotate(360deg)";
     rotated = !rotated;

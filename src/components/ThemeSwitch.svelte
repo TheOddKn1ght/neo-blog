@@ -1,19 +1,21 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
 
+  type Theme = "auto" | "light" | "dark";
+
   const STORAGE_KEY = "theme";
-  const ORDER = ["auto", "light", "dark"];
-  const LABEL = { auto: "Auto", light: "Light", dark: "Dark" };
+  const ORDER: Theme[] = ["auto", "light", "dark"];
+  const LABEL: Record<Theme, string> = { auto: "Auto", light: "Light", dark: "Dark" };
 
-  let theme = $state("auto");
+  let theme: Theme = $state("auto");
 
-  function apply(next) {
+  function apply(next: Theme): void {
     const root = document.documentElement;
     if (next === "auto") root.removeAttribute("data-theme");
     else root.setAttribute("data-theme", next);
   }
 
-  function cycle() {
+  function cycle(): void {
     const i = ORDER.indexOf(theme);
     const next = ORDER[(i + 1) % ORDER.length];
     theme = next;
@@ -25,7 +27,7 @@
   }
 
   onMount(() => {
-    let stored = null;
+    let stored: string | null = null;
     try {
       stored = localStorage.getItem(STORAGE_KEY);
     } catch {}

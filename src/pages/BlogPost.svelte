@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { setMeta } from "../router";
   import ScrollTop from "../components/ScrollTop.svelte";
+  import type { Post } from "../types";
 
-  let { slug } = $props();
-  let post = $state(null);
-  let notFound = $state(false);
+  let { slug }: { slug: string } = $props();
+  let post: Post | null = $state(null);
+  let notFound: boolean = $state(false);
 
   onMount(async () => {
     try {
@@ -16,7 +17,7 @@
         return;
       }
       post = await r.json();
-      setMeta(post.title, post.description);
+      setMeta(post!.title, post!.description);
     } catch {
       notFound = true;
       setMeta("404 - Page not found");

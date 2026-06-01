@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { setMeta } from "../router";
   import { installCounter } from "../behaviors/counter";
   import { installLogoConfetti } from "../behaviors/logoConfetti";
+  import type { PostMeta } from "../types";
 
-  let posts = $state([]);
-  let status = $state("");
+  let posts: PostMeta[] = $state([]);
+  let status: string = $state("");
 
   onMount(() => {
     setMeta(
@@ -15,7 +16,7 @@
 
     fetch("/content/index.json")
       .then((r) => r.json())
-      .then((data) => {
+      .then((data: { posts?: PostMeta[] }) => {
         posts = (data.posts ?? []).slice(0, 5);
       })
       .catch(() => {});
@@ -28,9 +29,11 @@
     };
   });
 
-  async function onSubmit(e) {
+  async function onSubmit(e: SubmitEvent): Promise<void> {
     e.preventDefault();
-    const ta = e.currentTarget.querySelector("#ama-message");
+    const form = e.currentTarget as HTMLFormElement;
+    const ta = form.querySelector<HTMLTextAreaElement>("#ama-message");
+    if (!ta) return;
     const message = ta.value.trim();
     if (!message) return;
     status = "Sending...";

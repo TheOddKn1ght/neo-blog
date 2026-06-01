@@ -1,16 +1,16 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import ThemeSwitch from "./ThemeSwitch.svelte";
 
-  let linksOpen = $state(false);
-  let linksEl;
-  let iconEl;
+  let linksOpen: boolean = $state(false);
+  let linksEl: HTMLUListElement | undefined = $state();
+  let iconEl: HTMLDivElement | undefined = $state();
 
-  function toggle() {
+  function toggle(): void {
     linksOpen = !linksOpen;
   }
 
-  function onKey(e) {
+  function onKey(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       toggle();
@@ -19,7 +19,7 @@
 
   onMount(() => {
     const mq = window.matchMedia("(min-width: 876px)");
-    const onChange = (e) => {
+    const onChange = (e: MediaQueryListEvent): void => {
       if (e.matches) linksOpen = false;
     };
     mq.addEventListener("change", onChange);

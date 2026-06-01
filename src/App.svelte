@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { getPath, installRouter, subscribe } from "./router";
   import Nav from "./components/Nav.svelte";
@@ -11,18 +11,27 @@
   import Yo from "./pages/Yo.svelte";
   import NotFound from "./pages/NotFound.svelte";
 
-  let path = $state(getPath());
+  type Route =
+    | { name: "home" }
+    | { name: "blogList" }
+    | { name: "blogPost"; slug: string }
+    | { name: "gallery" }
+    | { name: "contact" }
+    | { name: "yo" }
+    | { name: "notFound" };
+
+  let path: string = $state(getPath());
 
   onMount(() => {
     const teardownRouter = installRouter();
-    const unsub = subscribe((p) => (path = p));
+    const unsub = subscribe((p: string) => (path = p));
     return () => {
       teardownRouter();
       unsub();
     };
   });
 
-  function match(p) {
+  function match(p: string): Route {
     const stripped = p.replace(/\/+$/, "") || "/";
     if (stripped === "/") return { name: "home" };
     if (stripped === "/blog") return { name: "blogList" };
@@ -34,7 +43,7 @@
     return { name: "notFound" };
   }
 
-  const route = $derived(match(path));
+  const route: Route = $derived(match(path));
 </script>
 
 <svelte:head>

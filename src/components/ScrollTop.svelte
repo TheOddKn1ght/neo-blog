@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
 
   const THRESHOLD = 300;
-  let visible = $state(false);
+  let visible: boolean = $state(false);
 
   onMount(() => {
-    const onScroll = () => {
+    const onScroll = (): void => {
       visible = window.scrollY > THRESHOLD;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -13,7 +13,7 @@
     return () => window.removeEventListener("scroll", onScroll);
   });
 
-  function toTop() {
+  function toTop(): void {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 </script>

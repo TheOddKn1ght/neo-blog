@@ -1,4 +1,4 @@
-import { compile } from "svelte/compiler";
+import { compile, preprocess } from "svelte/compiler";
 import { marked } from "marked";
 import { readdir, readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
 import { join, extname, basename } from "node:path";
@@ -25,12 +25,22 @@ type PostMeta = {
 
 type Post = PostMeta & { html: string };
 
+const tsTranspiler = new Bun.Transpiler({ loader: "ts" });
+
+const tsPreprocess = {
+  script({ content, attributes }: { content: string; attributes: Record<string, string | boolean> }) {
+    if (attributes.lang !== "ts") return undefined;
+    return { code: tsTranspiler.transformSync(content) };
+  },
+};
+
 const sveltePlugin: BunPlugin = {
   name: "svelte",
   setup(build) {
     build.onLoad({ filter: /\.svelte$/ }, async ({ path }) => {
       const source = await readFile(path, "utf8");
-      const out = compile(source, {
+      const { code: processed } = await preprocess(source, [tsPreprocess], { filename: path });
+      const out = compile(processed, {
         filename: path,
         generate: "client",
         css: "injected",
