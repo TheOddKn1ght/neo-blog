@@ -262,6 +262,7 @@ async function writeIndexHtml(): Promise<void> {
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
     <link rel="stylesheet" href="/css/style.css" />
+    <script>(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
     <script type="module" src="/index.js"></script>
   </head>
   <body></body>

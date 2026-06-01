@@ -19,7 +19,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --bg: #252525;
         --fg: #eceff4;
         --link: #81a1c1;
@@ -31,6 +31,23 @@
         --scroll-btn-fg: #fff;
         --footer-filter: none;
     }
+}
+
+:root[data-theme="dark"] {
+    --bg: #252525;
+    --fg: #eceff4;
+    --link: #81a1c1;
+    --code_fg: #a7a7a7;
+    --code_bg: #3c3c3c;
+    --blue: #4f7193;
+    --gray: #7c8188;
+    --scroll-btn-bg: #333;
+    --scroll-btn-fg: #fff;
+    --footer-filter: none;
+}
+
+body {
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 footer div img,
@@ -554,6 +571,50 @@ nav .nav-left a:hover .sitename { text-decoration: underline; }
     margin-top: 0.1em;
     font-size: 0.85em;
     color: var(--gray);
+}
+
+li.theme-icon { display: inline-flex; align-items: center; vertical-align: middle; }
+
+#theme-toggle-btn {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    margin: 0;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg);
+    cursor: pointer;
+    border-radius: 50%;
+    opacity: 0.75;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+#theme-toggle-btn:hover {
+    opacity: 1;
+    color: var(--cyan);
+    background-color: var(--code_bg);
+    transform: rotate(-12deg);
+}
+
+#theme-toggle-btn:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+    opacity: 1;
+}
+
+#theme-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 @media only screen and (max-width: 875px) {

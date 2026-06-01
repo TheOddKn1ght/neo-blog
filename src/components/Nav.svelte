@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import ThemeSwitch from "./ThemeSwitch.svelte";
 
   let linksOpen = $state(false);
   let linksEl;
@@ -37,6 +38,7 @@
   </div>
   <div class="nav-right">
     <ul>
+      <li class="icons theme-icon"><ThemeSwitch /></li>
       <li class="icons">
         <a id="toggle-nav" aria-label="Toggle navigation" role="button" tabindex="0" onclick={toggle} onkeydown={onKey}>
           <div class="hamburger-icon" class:active={linksOpen} bind:this={iconEl}>
