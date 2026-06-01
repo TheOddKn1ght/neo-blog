@@ -38,7 +38,6 @@
   </div>
   <div class="nav-right">
     <ul>
-      <li class="icons theme-icon"><ThemeSwitch /></li>
       <li class="icons">
         <a id="toggle-nav" aria-label="Toggle navigation" role="button" tabindex="0" onclick={toggle} onkeydown={onKey}>
           <div class="hamburger-icon" class:active={linksOpen} bind:this={iconEl}>
@@ -46,6 +45,7 @@
           </div>
         </a>
       </li>
+      <li class="icons theme-icon"><ThemeSwitch /></li>
     </ul>
     <ul id="links" class:nav-active={linksOpen} bind:this={linksEl}>
       <li><a href="/contact">contact</a></li>

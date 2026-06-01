@@ -621,6 +621,8 @@ li.theme-icon { display: inline-flex; align-items: center; vertical-align: middl
     li.icons a { margin-right: 1em; }
     li.icons a:last-child { margin-right: 0; }
 
+    li.theme-icon #theme-toggle-btn { margin-top: 5px; }
+
     #toggle-nav { display: inline-block; }
 
     nav { align-items: baseline; }
