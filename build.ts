@@ -267,10 +267,7 @@ async function writeIndexHtml(): Promise<void> {
     <meta name="description" content="OddKnight's personal webpage. Thanks for stopping by!" />
     <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
     <link rel="alternate" type="application/rss+xml" title="OddKnight's Space" href="/rss.xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/comic-mono@0.0.1/index.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <script>(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
     <script type="module" src="/index.js"></script>

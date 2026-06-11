@@ -4,19 +4,6 @@ title="Comic Sans"
 description="About the most beautiful font in the world"
 +++
 
-<style>
-    
-    @font-face {
-    font-family: 'Comic Sans MS';
-    src: url('../../fonts/COMICSANS.TTF') format('truetype');
-}
-
-body, h1, h2, h3 {
-    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
-}
-
-</style>
-
 ## The true beauty
 
 
@@ -27,3 +14,7 @@ In the world of typography, Comic Sans gets a bad rap. It's always made fun of b
 Think about it. This font is perfect for capturing a sense of fun and friendliness. It's inviting and approachable, a quality that many fonts lack. Here's the thing: not everything needs to be taken so seriously. Sometimes, you just want a font that *slaps*. Comic Sans does that perfectly. 
 
 So get your dirty hands off my beloved font!
+
+### UPD
+
+I like this font so much I even started using it on this site. Well, not Comic Sans exactly — I switched everything over to [Comic Mono](https://github.com/dtinth/comic-mono-font) instead. Same energy, just monospace.

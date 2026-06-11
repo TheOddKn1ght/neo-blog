@@ -77,7 +77,7 @@ footer div img,
 body {
     color: var(--fg);
     background: var(--bg);
-    font-family: "Azeret Mono", monospace;
+    font-family: "Comic Mono", monospace;
     font-size: 17px;
     line-height: 1.5em;
     word-break: break-word;
@@ -126,7 +126,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--fg);
     font-weight: 700;
     line-height: 1em;
-    font-family: "Avenir Next", "Avenir", "jost", "Helvetica", "Tahoma", sans-serif;
+    font-family: "Comic Mono", monospace;
 }
 
 h1 { font-size: 3em; line-height: 1.2em; margin: 0; }
@@ -140,7 +140,7 @@ p.date {
 }
 
 code, kbd, pre, samp {
-    font-family: "Fira Code", monospace;
+    font-family: "Comic Mono", monospace;
     font-size: 0.98em;
 }
 
