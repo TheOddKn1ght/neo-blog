@@ -47,7 +47,8 @@
       </li>
       <li class="icons theme-icon"><ThemeSwitch /></li>
     </ul>
-    <ul id="links" class:nav-active={linksOpen} bind:this={linksEl}>
+    <ul id="links" class:nav-active={linksOpen} bind:this={linksEl}
+        onclick={(e) => { if ((e.target as HTMLElement).closest('a')) linksOpen = false; }}>
       <li><a href="/contact">contact</a></li>
       <li><a href="https://github.com/TheOddKn1ght">github</a></li>
       <li><a href="https://myanimelist.net/profile/TheOddKnight">myanimelist</a></li>
