@@ -10,6 +10,20 @@ const COLORS = [
 ];
 const COUNT = 500;
 
+const EMOJIS = [
+  "🎉","🎊","🥳","✨","🎈","🎁","🪅","🌟","💫","🎆","🎇","🍾","🥂","🎀","🎂","🧁","🍰","🍩","🍪","🍫",
+  "🍬","🍭","🍮","🍯","🍿","🍦","🍨","🍧","🍓","🍇","🍉","🍑","🍒","🍍","🥭","🥥","🥝","🍋","🍊","🍎",
+  "🥑","🌽","🌶","🥕","🍔","🍕","🌮","🌯","🍣","🍜","🍱","🍙","🥟","🍤","🥐","🥨","🧀","🥞","🧇","🍞",
+  "🐶","🐱","🦊","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🦆","🦉","🦇","🐺","🦄","🐴","🐝",
+  "🦋","🐞","🐢","🐙","🦑","🦐","🦀","🐬","🐳","🦈","🐠","🦓","🦒","🐘","🦛","🦏","🦘","🦥","🦦","🦔",
+  "🌸","🌺","🌻","🌷","🌹","🌼","🌱","🌿","🍀","🍁","🍂","🌳","🌴","🌵","🍄","🌍","🌎","🌏","🌙","☀️",
+  "⭐","⚡","🔥","💧","🌈","❄️","☃️","⛄","🌊","☁️","🌪","🌋","🏔","🗻","🏝","🏖","🌅","🌄","🎑","🌌",
+  "❤️","🧡","💛","💚","💙","💜","🤎","🖤","🤍","💖","💝","💘","💕","💞","💟","💌","💎","💍","👑","🎩",
+  "🎵","🎶","🎸","🎹","🎺","🎷","🥁","🎻","🎤","🎧","🎬","🎨","🎭","🎯","🎲","🧩","🪀","🪁","🎮","🕹",
+  "🚀","🛸","🌠","🪐","🛹","🛼","🚲","⚽","🏀","🏈","🎾","🏐","🏆","🥇","🥈","🥉","📚","✏️","💡","🔮",
+  "🧸","🗿","🎃","👻","🤖","👾","🦖","🦕","🐉","🧙","🧚","🧜","🧞","🦸","🪄","🪴","🪷","🪸","🪼","🪿",
+];
+
 function burst(): void {
   const frag = document.createDocumentFragment();
   const pieces: HTMLDivElement[] = [];
@@ -59,7 +73,7 @@ export function installLogoConfetti(): () => void {
     const sitename = document.querySelector(".sitename");
     if (!sitename?.parentNode) return;
     const el = document.createElement("span");
-    el.textContent = "🎉";
+    el.textContent = EMOJIS[(Math.random() * EMOJIS.length) | 0];
     el.className = "confetti-emoji";
     el.style.cssText =
       "display:inline-block;font-size:20px;margin-left:5px;pointer-events:auto;cursor:pointer;transition:transform .2s ease,opacity .3s ease;user-select:none;vertical-align:middle;text-decoration:none;opacity:0;";
