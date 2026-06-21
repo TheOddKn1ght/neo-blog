@@ -11,18 +11,31 @@ export function installEnlarge(): () => void {
 
   let suppressUrlWrite = false;
 
+  const filenameNumber = (img: HTMLImageElement): number | null => {
+    const src = img.src || img.dataset.src || "";
+    const m = /\/gallery\/(\d+)\./.exec(src);
+    return m ? Number(m[1]) : null;
+  };
+
+  const indexByPhotoNumber = new Map<number, number>();
+  images.forEach((img, i) => {
+    const n = filenameNumber(img);
+    if (n !== null) indexByPhotoNumber.set(n, i);
+  });
+
   const readPhotoParam = (): number | null => {
     const raw = new URL(location.href).searchParams.get("photo");
     if (raw === null || !/^\d+$/.test(raw)) return null;
     const n = Number(raw);
-    if (n < 1 || n > images.length) return null;
-    return n - 1;
+    return indexByPhotoNumber.get(n) ?? null;
   };
 
   const writePhotoParam = (index: number) => {
     if (suppressUrlWrite) return;
     const url = new URL(location.href);
-    url.searchParams.set("photo", String(index + 1));
+    const n = filenameNumber(images[index]);
+    if (n === null) url.searchParams.delete("photo");
+    else url.searchParams.set("photo", String(n));
     history.replaceState({}, "", url.pathname + url.search + url.hash);
   };
 
