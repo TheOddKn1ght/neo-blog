@@ -421,6 +421,8 @@ nav .nav-left a:hover .sitename { text-decoration: underline; }
 .lazy-load { opacity: 0; }
 .lazy-load.loaded { opacity: 1; }
 
+body.modal-open { overflow: hidden; }
+
 .modal {
     display: none;
     position: fixed;

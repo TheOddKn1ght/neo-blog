@@ -67,12 +67,14 @@ export function installEnlarge(): () => void {
   const open = (index: number) => {
     modal.style.display = "flex";
     modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
     show(index);
   };
 
   const close = () => {
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
     clearSlide();
     clearPhotoParam();
   };
@@ -151,5 +153,6 @@ export function installEnlarge(): () => void {
     modalImg.removeEventListener("touchstart", onTouchStart);
     modalImg.removeEventListener("touchend", onTouchEnd);
     window.removeEventListener("popstate", onPop);
+    document.body.classList.remove("modal-open");
   };
 }
