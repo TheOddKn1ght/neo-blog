@@ -9,6 +9,33 @@ export function installEnlarge(): () => void {
   const images = Array.from(document.querySelectorAll<HTMLImageElement>(".gallery img"));
   if (!images.length) return () => {};
 
+  let suppressUrlWrite = false;
+
+  const readPhotoParam = (): number | null => {
+    const raw = new URL(location.href).searchParams.get("photo");
+    if (raw === null || !/^\d+$/.test(raw)) return null;
+    const n = Number(raw);
+    if (n < 1 || n > images.length) return null;
+    return n - 1;
+  };
+
+  const writePhotoParam = (index: number) => {
+    if (suppressUrlWrite) return;
+    const url = new URL(location.href);
+    url.searchParams.set("photo", String(index + 1));
+    history.replaceState({}, "", url.pathname + url.search + url.hash);
+  };
+
+  const clearPhotoParam = () => {
+    if (suppressUrlWrite) return;
+    const url = new URL(location.href);
+    if (!url.searchParams.has("photo")) return;
+    url.searchParams.delete("photo");
+    history.replaceState({}, "", url.pathname + url.search + url.hash);
+  };
+
+  const isOpen = () => modal.style.display === "flex";
+
   const SLIDE = ["slide-out-left", "slide-out-right", "slide-in-left", "slide-in-right"];
   const clearSlide = () => modalImg.classList.remove(...SLIDE);
   let currentIndex = -1;
@@ -18,6 +45,7 @@ export function installEnlarge(): () => void {
   const show = (index: number, direction: "left" | "right" | null = null) => {
     if (index < 0) index = images.length - 1;
     if (index >= images.length) index = 0;
+    writePhotoParam(index);
     if (!direction) {
       modalImg.src = srcOf(images[index]);
       clearSlide();
@@ -46,6 +74,7 @@ export function installEnlarge(): () => void {
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
     clearSlide();
+    clearPhotoParam();
   };
 
   const handlers: Array<() => void> = [];
@@ -93,6 +122,25 @@ export function installEnlarge(): () => void {
   modalImg.addEventListener("touchstart", onTouchStart, { passive: true });
   modalImg.addEventListener("touchend", onTouchEnd);
 
+  const onPop = () => {
+    const idx = readPhotoParam();
+    suppressUrlWrite = true;
+    try {
+      if (idx !== null) {
+        if (!isOpen()) open(idx);
+        else show(idx);
+      } else if (isOpen()) {
+        close();
+      }
+    } finally {
+      suppressUrlWrite = false;
+    }
+  };
+  window.addEventListener("popstate", onPop);
+
+  const initial = readPhotoParam();
+  if (initial !== null) open(initial);
+
   return () => {
     for (const h of handlers) h();
     closeBtn?.removeEventListener("click", onClose);
@@ -102,5 +150,6 @@ export function installEnlarge(): () => void {
     window.removeEventListener("keydown", onKey);
     modalImg.removeEventListener("touchstart", onTouchStart);
     modalImg.removeEventListener("touchend", onTouchEnd);
+    window.removeEventListener("popstate", onPop);
   };
 }
