@@ -11,6 +11,31 @@ export function installEnlarge(): () => void {
 
   let suppressUrlWrite = false;
 
+  type StartViewTransition = (cb: () => void) => { finished: Promise<void> };
+  const supportsVT = () =>
+    typeof (document as unknown as { startViewTransition?: StartViewTransition }).startViewTransition === "function";
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canMorph = () => supportsVT() && !prefersReducedMotion();
+
+  const withMorph = (source: Element | null, target: Element | null, mutate: () => void) => {
+    if (!canMorph() || !source) {
+      mutate();
+      return;
+    }
+    document.body.classList.add("vt-active");
+    source.classList.add("vt-morph");
+    const doc = document as unknown as { startViewTransition: StartViewTransition };
+    const transition = doc.startViewTransition(() => {
+      source.classList.remove("vt-morph");
+      mutate();
+      target?.classList.add("vt-morph");
+    });
+    transition.finished.finally(() => {
+      target?.classList.remove("vt-morph");
+      document.body.classList.remove("vt-active");
+    });
+  };
+
   const filenameNumber = (img: HTMLImageElement): number | null => {
     const src = img.src || img.dataset.src || "";
     const m = /\/gallery\/(\d+)\./.exec(src);
@@ -77,24 +102,33 @@ export function installEnlarge(): () => void {
     setTimeout(() => modalImg.classList.remove("slide-in-left", "slide-in-right"), 550);
   };
 
-  const open = (index: number) => {
-    modal.style.display = "flex";
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    show(index);
+  const open = (index: number, source?: HTMLImageElement) => {
+    const doOpen = () => {
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      show(index);
+    };
+    if (source && canMorph()) withMorph(source, modalImg, doOpen);
+    else doOpen();
   };
 
   const close = () => {
-    modal.style.display = "none";
-    modal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("modal-open");
-    clearSlide();
-    clearPhotoParam();
+    const target = images[currentIndex] ?? null;
+    const doClose = () => {
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      clearSlide();
+      clearPhotoParam();
+    };
+    if (target && canMorph()) withMorph(modalImg, target, doClose);
+    else doClose();
   };
 
   const handlers: Array<() => void> = [];
   images.forEach((img, i) => {
-    const fn = () => open(i);
+    const fn = () => open(i, img);
     img.addEventListener("click", fn);
     handlers.push(() => img.removeEventListener("click", fn));
   });

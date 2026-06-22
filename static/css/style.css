@@ -63,6 +63,23 @@ footer div img,
     @view-transition { navigation: none; }
 }
 
+.vt-morph { view-transition-name: gallery-photo; }
+
+::view-transition-group(gallery-photo) {
+    animation-duration: 320ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.vt-active .gallery img:hover { transform: none; }
+
+@media (prefers-reduced-motion) {
+    ::view-transition-group(gallery-photo),
+    ::view-transition-old(gallery-photo),
+    ::view-transition-new(gallery-photo) {
+        animation: none !important;
+    }
+}
+
 @keyframes moveText {
     from { transform: translate(0, 0); }
     to   { transform: translate(-100%, 0); }
