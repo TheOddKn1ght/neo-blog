@@ -78,6 +78,16 @@ export function installEnlarge(): () => void {
   const clearSlide = () => modalImg.classList.remove(...SLIDE);
   let currentIndex = -1;
 
+  const setHiddenThumb = (newIndex: number) => {
+    if (currentIndex >= 0 && currentIndex !== newIndex) {
+      images[currentIndex]?.classList.remove("vt-hidden");
+    }
+    images[newIndex]?.classList.add("vt-hidden");
+  };
+  const clearHiddenThumb = () => {
+    if (currentIndex >= 0) images[currentIndex]?.classList.remove("vt-hidden");
+  };
+
   const srcOf = (img: HTMLImageElement) => img.src || img.dataset.src || "";
 
   const show = (index: number, direction: "left" | "right" | null = null) => {
@@ -87,6 +97,7 @@ export function installEnlarge(): () => void {
     if (!direction) {
       modalImg.src = srcOf(images[index]);
       clearSlide();
+      setHiddenThumb(index);
       currentIndex = index;
       return;
     }
@@ -97,6 +108,7 @@ export function installEnlarge(): () => void {
       modalImg.src = srcOf(images[index]);
       modalImg.classList.remove("slide-out-left", "slide-out-right");
       modalImg.classList.add(left ? "slide-in-left" : "slide-in-right");
+      setHiddenThumb(index);
       currentIndex = index;
     }, 250);
     setTimeout(() => modalImg.classList.remove("slide-in-left", "slide-in-right"), 550);
@@ -121,6 +133,7 @@ export function installEnlarge(): () => void {
       document.body.classList.remove("modal-open");
       clearSlide();
       clearPhotoParam();
+      clearHiddenThumb();
     };
     if (target && canMorph()) withMorph(modalImg, target, doClose);
     else doClose();
@@ -201,5 +214,6 @@ export function installEnlarge(): () => void {
     modalImg.removeEventListener("touchend", onTouchEnd);
     window.removeEventListener("popstate", onPop);
     document.body.classList.remove("modal-open");
+    clearHiddenThumb();
   };
 }
