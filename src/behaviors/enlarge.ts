@@ -6,10 +6,14 @@ export function installEnlarge(): () => void {
   const nextBtn = document.getElementById("modalNext");
   if (!modal || !modalImg) return () => {};
 
-  const images = Array.from(document.querySelectorAll<HTMLImageElement>(".gallery img"));
+  const triggers = Array.from(document.querySelectorAll<HTMLButtonElement>(".gallery-item"));
+  const images = triggers
+    .map((trigger) => trigger.querySelector<HTMLImageElement>("img"))
+    .filter((img): img is HTMLImageElement => img !== null);
   if (!images.length) return () => {};
 
   let suppressUrlWrite = false;
+  let activeTrigger: HTMLButtonElement | null = null;
 
   type StartViewTransition = (cb: () => void) => { finished: Promise<void> };
   const supportsVT = () =>
@@ -96,6 +100,7 @@ export function installEnlarge(): () => void {
     writePhotoParam(index);
     if (!direction) {
       modalImg.src = srcOf(images[index]);
+      modalImg.alt = `Gallery image ${index + 1} of ${images.length}`;
       clearSlide();
       setHiddenThumb(index);
       currentIndex = index;
@@ -106,6 +111,7 @@ export function installEnlarge(): () => void {
     modalImg.classList.add(left ? "slide-out-left" : "slide-out-right");
     setTimeout(() => {
       modalImg.src = srcOf(images[index]);
+      modalImg.alt = `Gallery image ${index + 1} of ${images.length}`;
       modalImg.classList.remove("slide-out-left", "slide-out-right");
       modalImg.classList.add(left ? "slide-in-left" : "slide-in-right");
       setHiddenThumb(index);
@@ -115,11 +121,13 @@ export function installEnlarge(): () => void {
   };
 
   const open = (index: number, source?: HTMLImageElement) => {
+    activeTrigger = triggers[index] ?? null;
     const doOpen = () => {
       modal.style.display = "flex";
       modal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
       show(index);
+      closeBtn?.focus({ preventScroll: true });
     };
     if (source && canMorph()) withMorph(source, modalImg, doOpen);
     else doOpen();
@@ -134,16 +142,19 @@ export function installEnlarge(): () => void {
       clearSlide();
       clearPhotoParam();
       clearHiddenThumb();
+      activeTrigger?.focus({ preventScroll: true });
     };
     if (target && canMorph()) withMorph(modalImg, target, doClose);
     else doClose();
   };
 
   const handlers: Array<() => void> = [];
-  images.forEach((img, i) => {
+  triggers.forEach((trigger, i) => {
+    const img = images[i];
+    if (!img) return;
     const fn = () => open(i, img);
-    img.addEventListener("click", fn);
-    handlers.push(() => img.removeEventListener("click", fn));
+    trigger.addEventListener("click", fn);
+    handlers.push(() => trigger.removeEventListener("click", fn));
   });
 
   const onClose = () => close();
@@ -167,10 +178,33 @@ export function installEnlarge(): () => void {
 
   const onKey = (e: KeyboardEvent) => {
     if (modal.style.display !== "flex") return;
+    if (e.key === "Tab") {
+      const controls = [closeBtn, prevBtn, nextBtn].filter(
+        (control): control is HTMLElement => control instanceof HTMLElement && control.offsetParent !== null,
+      );
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !controls.includes(document.activeElement as HTMLElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !controls.includes(document.activeElement as HTMLElement))) {
+        e.preventDefault();
+        first.focus();
+      }
+      return;
+    }
     const k = e.key.toLowerCase();
-    if (e.key === "ArrowRight" || k === "l") show(currentIndex + 1, "left");
-    else if (e.key === "ArrowLeft" || k === "h") show(currentIndex - 1, "right");
-    else if (e.key === "Escape") close();
+    if (e.key === "ArrowRight" || k === "l") {
+      e.preventDefault();
+      show(currentIndex + 1, "left");
+    } else if (e.key === "ArrowLeft" || k === "h") {
+      e.preventDefault();
+      show(currentIndex - 1, "right");
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
   };
   window.addEventListener("keydown", onKey);
 

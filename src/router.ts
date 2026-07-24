@@ -2,6 +2,7 @@ import { tick } from "svelte";
 
 type Listener = (path: string) => void;
 
+const DEFAULT_DESCRIPTION = "OddKnight's personal webpage. Thanks for stopping by!";
 const listeners = new Set<Listener>();
 let current = typeof location !== "undefined" ? location.pathname : "/";
 
@@ -86,15 +87,13 @@ export function installRouter(): () => void {
   };
 }
 
-export function setMeta(title: string, description?: string): void {
+export function setMeta(title: string, description: string = DEFAULT_DESCRIPTION): void {
   document.title = title;
-  if (description != null) {
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-    meta.content = description;
+  let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "description";
+    document.head.appendChild(meta);
   }
+  meta.content = description;
 }

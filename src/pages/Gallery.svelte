@@ -9,17 +9,22 @@
   let teardownLazy: (() => void) | undefined;
   let teardownEnlarge: (() => void) | undefined;
 
-  onMount(async () => {
+  onMount(() => {
+    let cancelled = false;
     setMeta("Gallery", "OddKnight's silly ugly photos");
-    try {
-      const r = await fetch("/content/index.json");
-      const data: { gallery?: string[] } = await r.json();
-      images = data.gallery ?? [];
-    } catch {}
-    await tick();
-    teardownLazy = installLazyLoad();
-    teardownEnlarge = installEnlarge();
+    void (async () => {
+      try {
+        const r = await fetch("/content/index.json");
+        const data: { gallery?: string[] } = await r.json();
+        images = data.gallery ?? [];
+      } catch {}
+      await tick();
+      if (cancelled) return;
+      teardownLazy = installLazyLoad();
+      teardownEnlarge = installEnlarge();
+    })();
     return () => {
+      cancelled = true;
       teardownLazy?.();
       teardownEnlarge?.();
     };
@@ -30,15 +35,17 @@
 <h1 class="title">Gallery</h1>
 
 <div class="gallery">
-  {#each images as src}
-    <img class="lazy-load" data-src={src} alt="" loading="lazy" decoding="async" />
+  {#each images as src, index}
+    <button type="button" class="gallery-item" aria-label="Open gallery image {index + 1}">
+      <img class="lazy-load" data-src={src} alt="" loading="lazy" decoding="async" />
+    </button>
   {/each}
 </div>
-<div id="modal" class="modal" aria-hidden="true">
-  <span id="modalClose" class="modal-close" role="button" aria-label="Close">&times;</span>
-  <span id="modalPrev" class="modal-arrow left" role="button" aria-label="Previous">&#10094;</span>
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Gallery image viewer" aria-hidden="true">
+  <button id="modalClose" type="button" class="modal-close" aria-label="Close gallery image">&times;</button>
+  <button id="modalPrev" type="button" class="modal-arrow left" aria-label="Previous gallery image">&#10094;</button>
   <div class="modal-image-container">
     <img id="modalImg" src="" alt="" />
   </div>
-  <span id="modalNext" class="modal-arrow right" role="button" aria-label="Next">&#10095;</span>
+  <button id="modalNext" type="button" class="modal-arrow right" aria-label="Next gallery image">&#10095;</button>
 </div>

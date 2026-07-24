@@ -4,6 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "bun run build.ts",
+    "check": "bun run check:types && bun run check:svelte",
+    "check:types": "tsc --noEmit",
+    "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
     "serve": "bun run server.ts",
     "dev": "bun run build.ts --watch & bun run --watch server.ts",
     "start": "bun run build.ts && bun run server.ts"
@@ -11,5 +14,10 @@
   "dependencies": {
     "marked": "14.1.4",
     "svelte": "5.55.10"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "svelte-check": "4.7.3",
+    "typescript": "6.0.3"
   }
 }

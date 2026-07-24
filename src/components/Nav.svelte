@@ -10,6 +10,10 @@
     linksOpen = !linksOpen;
   }
 
+  function closeLinks(): void {
+    linksOpen = false;
+  }
+
   function onKey(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -47,14 +51,13 @@
       </li>
       <li class="icons theme-icon"><ThemeSwitch /></li>
     </ul>
-    <ul id="links" class:nav-active={linksOpen} bind:this={linksEl}
-        onclick={(e) => { if ((e.target as HTMLElement).closest('a')) linksOpen = false; }}>
-      <li><a href="/contact">contact</a></li>
-      <li><a href="https://github.com/TheOddKn1ght">github</a></li>
-      <li><a href="https://myanimelist.net/profile/TheOddKnight">myanimelist</a></li>
-      <li><a href="/gallery">gallery</a></li>
-      <li><a href="https://x.com/oddtheknight">twitter</a></li>
-      <li><a href="/blog">posts</a></li>
+    <ul id="links" class:nav-active={linksOpen} bind:this={linksEl}>
+      <li><a href="/contact" onclick={closeLinks}>contact</a></li>
+      <li><a href="https://github.com/TheOddKn1ght" onclick={closeLinks}>github</a></li>
+      <li><a href="https://myanimelist.net/profile/TheOddKnight" onclick={closeLinks}>myanimelist</a></li>
+      <li><a href="/gallery" onclick={closeLinks}>gallery</a></li>
+      <li><a href="https://x.com/oddtheknight" onclick={closeLinks}>twitter</a></li>
+      <li><a href="/blog" onclick={closeLinks}>posts</a></li>
     </ul>
   </div>
 </nav>

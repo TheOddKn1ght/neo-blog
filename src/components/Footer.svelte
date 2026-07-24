@@ -1,3 +1,5 @@
+<script lang="ts"></script>
+
 <footer>
   <div>
     <a href="https://x.com/oddtheknight" aria-label="Twitter"><img src="/img/twitter_icon.svg" alt="" width="35" height="35" /></a>
