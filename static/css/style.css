@@ -213,12 +213,22 @@ ul.articles {
 
 ul.articles li { padding-bottom: 10px; }
 
-#posts-list li:nth-child(odd) {
+.posts-list {
     list-style: none;
-    color: var(--gray);
+    padding: 0;
 }
 
-#posts-list li:nth-child(even) { margin-bottom: 10px; }
+.posts-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75em;
+    margin-bottom: 10px;
+}
+
+.posts-list time {
+    color: var(--gray);
+    min-width: 6.5em;
+}
 
 dd { margin: 0 0 0 2em; }
 
@@ -274,7 +284,11 @@ nav > div.nav-right > ul > li > a { padding: 0.5em; }
 nav > div > ul > li > a:hover { color: var(--fg) !important; }
 
 .nav-left { float: left; }
-.nav-left ul li { float: left; }
+.nav-left ul li {
+    float: left;
+    display: flex;
+    align-items: center;
+}
 .nav-right ul,
 .nav-right ul li { float: right; }
 
@@ -282,6 +296,22 @@ li.icons { padding-left: 9px; }
 li.icons a { display: inline-block; }
 
 #toggle-nav { display: none; }
+
+button#toggle-nav {
+    appearance: none;
+    margin: 0;
+    padding: 0.5em;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    line-height: 2em;
+    cursor: pointer;
+}
+
+button#toggle-nav:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+}
 
 .hamburger-icon {
     width: 28px;
@@ -373,6 +403,45 @@ nav .nav-left a:hover .confetti-emoji {
     box-shadow: none !important;
 }
 
+.confetti-emoji {
+    appearance: none;
+    margin-left: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.3s ease;
+    user-select: none;
+}
+
+.confetti-emoji:hover { transform: scale(1.2); }
+
+.confetti-emoji:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+}
+
+.confetti-piece {
+    position: fixed;
+    left: var(--left);
+    top: -10px;
+    width: var(--size);
+    height: var(--size);
+    background: var(--color);
+    border-radius: var(--radius);
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0.9;
+    animation: confettiFall var(--duration) cubic-bezier(0.5, 0, 0.5, 1) forwards;
+}
+
+@keyframes confettiFall {
+    from { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    to { transform: translate(var(--x), calc(100vh + 100px)) rotate(var(--rotation)); opacity: 0; }
+}
+
 nav .nav-left a:hover { text-decoration: none !important; }
 nav .nav-left a:hover .sitename { text-decoration: underline; }
 
@@ -450,18 +519,18 @@ nav .nav-left a:hover .sitename { text-decoration: underline; }
     border-radius: 10px;
     object-fit: cover;
     cursor: pointer;
+    opacity: 0;
     transition: opacity 0.3s, transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
 .gallery img:hover { transform: scale(1.12); }
 
-.lazy-load { opacity: 0; }
-.lazy-load.loaded { opacity: 1; }
+.gallery img.loaded { opacity: 1; }
 
 body.modal-open { overflow: hidden; }
 
 .modal {
-    display: none;
+    display: flex;
     position: fixed;
     top: 0;
     left: 0;
@@ -475,12 +544,17 @@ body.modal-open { overflow: hidden; }
 }
 
 .modal-image-container {
+    appearance: none;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
     perspective: 2000px;
 }
 
@@ -627,6 +701,40 @@ body.modal-open { overflow: hidden; }
     margin-top: 0.1em;
     font-size: 0.85em;
     color: var(--gray);
+}
+
+.load-state {
+    margin: 1.5em 0;
+    color: var(--gray);
+}
+
+.error-state {
+    padding: 1em;
+    border: 1px solid var(--red);
+    border-radius: 6px;
+}
+
+.error-state p { margin-top: 0; }
+
+.retry-button {
+    appearance: none;
+    padding: 0.45em 1em;
+    border: 1px solid var(--link);
+    border-radius: 4px;
+    background: var(--link);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.retry-button:hover {
+    background: var(--cyan);
+    border-color: var(--cyan);
+}
+
+.retry-button:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
 }
 
 li.theme-icon { display: inline-flex; align-items: center; vertical-align: middle; }

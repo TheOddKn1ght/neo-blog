@@ -1,10 +1,27 @@
 import { tick } from "svelte";
+import {
+  SITE_DESCRIPTION,
+  SITE_IMAGE,
+  SITE_IMAGE_ALT,
+  SITE_TITLE,
+  SITE_URL,
+} from "./site";
 
 type Listener = (path: string) => void;
 
-const DEFAULT_DESCRIPTION = "OddKnight's personal webpage. Thanks for stopping by!";
 const listeners = new Set<Listener>();
 let current = typeof location !== "undefined" ? location.pathname : "/";
+
+export type PageMeta = {
+  title: string;
+  description?: string;
+  path?: string;
+  type?: "website" | "article";
+  image?: string;
+  imageAlt?: string;
+  publishedTime?: string;
+  noIndex?: boolean;
+};
 
 function emit(path: string) {
   current = path;
@@ -87,13 +104,61 @@ export function installRouter(): () => void {
   };
 }
 
-export function setMeta(title: string, description: string = DEFAULT_DESCRIPTION): void {
-  document.title = title;
-  let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.name = "description";
-    document.head.appendChild(meta);
+function upsertMeta(attribute: "name" | "property", key: string, content: string): void {
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
   }
-  meta.content = description;
+  element.content = content;
+}
+
+function removeMeta(attribute: "name" | "property", key: string): void {
+  document.head.querySelector(`meta[${attribute}="${key}"]`)?.remove();
+}
+
+function absoluteUrl(path: string): string {
+  return new URL(path, SITE_URL).href;
+}
+
+export function setMeta(meta: PageMeta): void {
+  const description = meta.description ?? SITE_DESCRIPTION;
+  const path = meta.path ?? location.pathname;
+  const type = meta.type ?? "website";
+  const customImage = meta.image !== undefined;
+  const image = meta.image ?? SITE_IMAGE;
+  const imageAlt = meta.imageAlt ?? (customImage ? meta.title : SITE_IMAGE_ALT);
+  const canonicalUrl = absoluteUrl(path);
+  const imageUrl = absoluteUrl(image);
+
+  document.title = meta.title;
+  upsertMeta("name", "description", description);
+  upsertMeta("name", "robots", meta.noIndex ? "noindex, nofollow" : "index, follow");
+  upsertMeta("property", "og:site_name", SITE_TITLE);
+  upsertMeta("property", "og:title", meta.title);
+  upsertMeta("property", "og:description", description);
+  upsertMeta("property", "og:type", type);
+  upsertMeta("property", "og:url", canonicalUrl);
+  upsertMeta("property", "og:image", imageUrl);
+  upsertMeta("property", "og:image:alt", imageAlt);
+  upsertMeta("name", "twitter:card", customImage ? "summary_large_image" : "summary");
+  upsertMeta("name", "twitter:title", meta.title);
+  upsertMeta("name", "twitter:description", description);
+  upsertMeta("name", "twitter:image", imageUrl);
+  upsertMeta("name", "twitter:image:alt", imageAlt);
+
+  if (type === "article" && meta.publishedTime) {
+    upsertMeta("property", "article:published_time", `${meta.publishedTime}T00:00:00Z`);
+  } else {
+    removeMeta("property", "article:published_time");
+  }
+
+  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.appendChild(canonical);
+  }
+  canonical.href = canonicalUrl;
 }

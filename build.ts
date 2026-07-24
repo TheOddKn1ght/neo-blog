@@ -1,8 +1,16 @@
 import { compile, preprocess } from "svelte/compiler";
 import { marked } from "marked";
 import { readdir, readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
-import { join, extname, basename } from "node:path";
+import { join, basename, normalize } from "node:path";
 import type { BunPlugin } from "bun";
+import {
+  SITE_DESCRIPTION,
+  SITE_IMAGE,
+  SITE_IMAGE_ALT,
+  SITE_TITLE,
+  SITE_URL,
+} from "./src/site";
+import type { GalleryItem, PostMeta } from "./src/types";
 
 const ROOT = import.meta.dir;
 const SRC = join(ROOT, "src");
@@ -10,20 +18,11 @@ const STATIC = join(ROOT, "static");
 const CONTENT = join(ROOT, "content");
 const DIST = join(ROOT, "dist");
 
-const SITE_URL = "https://oddknight.space";
-const SITE_TITLE = "OddKnight's Space";
-const SITE_DESCRIPTION = "OddKnight's personal webpage. Thanks for stopping by!";
 const STATIC_ROUTES = ["/", "/blog", "/gallery", "/contact"];
 const RSS_MAX_ITEMS = 20;
 
-type PostMeta = {
-  slug: string;
-  title: string;
-  date: string;
-  description: string;
-};
-
 type Post = PostMeta & { html: string };
+type Frontmatter = Record<string, unknown>;
 
 const tsTranspiler = new Bun.Transpiler({ loader: "ts" });
 
@@ -51,20 +50,80 @@ const sveltePlugin: BunPlugin = {
   },
 };
 
-function parseFrontmatter(raw: string): { meta: Record<string, string>; body: string } {
+function fail(file: string, message: string): never {
+  throw new Error(`${file}: ${message}`);
+}
+
+function parseFrontmatter(file: string, raw: string): { meta: Frontmatter; body: string } {
   const m = /^\+\+\+\s*\r?\n([\s\S]*?)\r?\n\+\+\+\s*\r?\n?/.exec(raw);
-  if (!m) return { meta: {}, body: raw };
-  const meta: Record<string, string> = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const kv = /^\s*([A-Za-z_][\w]*)\s*=\s*(.+?)\s*$/.exec(line);
-    if (!kv) continue;
-    let v = kv[2].trim();
-    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-      v = v.slice(1, -1);
-    }
-    meta[kv[1]] = v;
+  if (!m) fail(file, "frontmatter block is required");
+  let parsed: unknown;
+  try {
+    parsed = Bun.TOML.parse(m[1]);
+  } catch (error) {
+    fail(file, `invalid TOML frontmatter: ${error instanceof Error ? error.message : String(error)}`);
   }
-  return { meta, body: raw.slice(m[0].length) };
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    fail(file, "frontmatter must be a TOML table");
+  }
+  return { meta: parsed as Frontmatter, body: raw.slice(m[0].length) };
+}
+
+function validateKeys(file: string, meta: Frontmatter, allowed: readonly string[]): void {
+  const allowedSet = new Set(allowed);
+  for (const key of Object.keys(meta)) {
+    if (!allowedSet.has(key)) fail(file, `unknown frontmatter field '${key}'`);
+  }
+}
+
+function requiredString(file: string, meta: Frontmatter, key: string): string {
+  const value = meta[key];
+  if (typeof value !== "string" || !value.trim()) fail(file, `'${key}' must be a non-empty string`);
+  return value.trim();
+}
+
+function validateDate(file: string, date: string): void {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(file, "'date' must use YYYY-MM-DD");
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+    fail(file, `'date' is not a real calendar date: ${date}`);
+  }
+}
+
+function validateSlug(file: string): string {
+  const slug = basename(file, ".md");
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    fail(file, "filename slug must be lowercase kebab-case");
+  }
+  return slug;
+}
+
+function ensureUniqueSlug(file: string, slug: string, seen: Map<string, string>): void {
+  const normalized = slug.toLowerCase();
+  const existing = seen.get(normalized);
+  if (existing) fail(file, `slug duplicates ${existing}`);
+  seen.set(normalized, file);
+}
+
+async function validateImage(
+  file: string,
+  meta: Frontmatter,
+): Promise<{ image?: string; imageAlt?: string }> {
+  const image = meta.image;
+  const imageAlt = meta.imageAlt;
+  if (image === undefined && imageAlt === undefined) return {};
+  if (typeof image !== "string" || !image.trim()) fail(file, "'image' must be a non-empty string");
+  if (typeof imageAlt !== "string" || !imageAlt.trim()) {
+    fail(file, "'imageAlt' is required when 'image' is set");
+  }
+  if (!image.startsWith("/img/") || image.includes("\0")) {
+    fail(file, "'image' must be a site-relative path under /img/");
+  }
+  const imagePath = normalize(join(STATIC, image));
+  if (!imagePath.startsWith(`${STATIC}/`) || !(await Bun.file(imagePath).exists())) {
+    fail(file, `'image' does not exist in static/: ${image}`);
+  }
+  return { image, imageAlt: imageAlt.trim() };
 }
 
 async function buildPosts(): Promise<Post[]> {
@@ -76,17 +135,26 @@ async function buildPosts(): Promise<Post[]> {
     return [];
   }
   const posts: Post[] = [];
+  const seen = new Map<string, string>();
   for (const file of files) {
     if (!file.endsWith(".md") || file.startsWith("_")) continue;
-    const slug = basename(file, ".md");
+    const slug = validateSlug(file);
+    ensureUniqueSlug(file, slug, seen);
     const raw = await readFile(join(dir, file), "utf8");
-    const { meta, body } = parseFrontmatter(raw);
+    const { meta, body } = parseFrontmatter(file, raw);
+    validateKeys(file, meta, ["date", "title", "description", "image", "imageAlt"]);
+    const title = requiredString(file, meta, "title");
+    const date = requiredString(file, meta, "date");
+    const description = requiredString(file, meta, "description");
+    validateDate(file, date);
+    const image = await validateImage(file, meta);
     const html = await marked.parse(body, { gfm: true, breaks: false });
     posts.push({
       slug,
-      title: meta.title ?? slug,
-      date: meta.date ?? "",
-      description: meta.description ?? "",
+      title,
+      date,
+      description,
+      ...image,
       html,
     });
   }
@@ -187,25 +255,64 @@ async function buildPages(): Promise<void> {
     return;
   }
   await mkdir(join(DIST, "content", "pages"), { recursive: true });
+  const seen = new Map<string, string>();
   for (const file of files) {
     if (!file.endsWith(".md")) continue;
-    const slug = basename(file, ".md");
+    const slug = validateSlug(file);
+    ensureUniqueSlug(file, slug, seen);
     const raw = await readFile(join(dir, file), "utf8");
-    const { meta, body } = parseFrontmatter(raw);
+    const { meta, body } = parseFrontmatter(file, raw);
+    validateKeys(file, meta, ["title", "description", "image", "imageAlt"]);
+    const title = requiredString(file, meta, "title");
+    const description = requiredString(file, meta, "description");
+    const image = await validateImage(file, meta);
     const html = await marked.parse(body, { gfm: true, breaks: false });
     await writeFile(
       join(DIST, "content", "pages", `${slug}.json`),
       JSON.stringify({
         slug,
-        title: meta.title ?? slug,
-        description: meta.description ?? "",
+        title,
+        description,
+        ...image,
         html,
       }),
     );
   }
 }
 
-async function buildGallery(): Promise<string[]> {
+async function readGalleryAltText(files: string[]): Promise<Record<string, string>> {
+  const path = join(CONTENT, "gallery.json");
+  if (!(await Bun.file(path).exists())) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await readFile(path, "utf8"));
+  } catch (error) {
+    fail("content/gallery.json", `invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    fail("content/gallery.json", "root value must be an object");
+  }
+  const known = new Set(files);
+  const result: Record<string, string> = {};
+  for (const [file, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (!known.has(file)) fail("content/gallery.json", `unknown gallery file '${file}'`);
+    if (typeof value !== "string" || !value.trim()) {
+      fail("content/gallery.json", `description for '${file}' must be a non-empty string`);
+    }
+    result[file] = value.trim();
+  }
+  return result;
+}
+
+function fallbackGalleryAlt(file: string): string {
+  const stem = file.replace(/\.[^.]+$/, "");
+  const numeric = /^(\d+)$/.exec(stem);
+  if (numeric) return `Gallery photo ${numeric[1]}`;
+  const words = stem.replace(/[-_]+/g, " ").trim();
+  return `Gallery image ${words || "untitled"}`;
+}
+
+async function buildGallery(): Promise<GalleryItem[]> {
   const dir = join(STATIC, "gallery");
   let files: string[];
   try {
@@ -214,6 +321,15 @@ async function buildGallery(): Promise<string[]> {
     return [];
   }
   const imgs = files.filter((f) => /\.(jpe?g|png|webp|gif|avif)$/i.test(f));
+  const numericIds = new Map<number, string>();
+  for (const file of imgs) {
+    const match = /^(\d+)\./.exec(file);
+    if (!match) continue;
+    const id = Number(match[1]);
+    const existing = numericIds.get(id);
+    if (existing) fail(file, `numeric gallery id duplicates ${existing}`);
+    numericIds.set(id, file);
+  }
   imgs.sort((a, b) => {
     const an = parseInt(/^(\d+)/.exec(a)?.[1] ?? "");
     const bn = parseInt(/^(\d+)/.exec(b)?.[1] ?? "");
@@ -224,7 +340,11 @@ async function buildGallery(): Promise<string[]> {
     if (bi) return 1;
     return a.localeCompare(b);
   });
-  return imgs.map((f) => `/gallery/${f}`);
+  const altText = await readGalleryAltText(imgs);
+  return imgs.map((file) => ({
+    src: `/gallery/${file}`,
+    alt: altText[file] ?? fallbackGalleryAlt(file),
+  }));
 }
 
 async function buildClient(): Promise<void> {
@@ -257,14 +377,30 @@ async function minifyCss(): Promise<void> {
 }
 
 async function writeIndexHtml(): Promise<void> {
+  const canonical = `${SITE_URL}/`;
+  const image = `${SITE_URL}${SITE_IMAGE}`;
   const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>OddKnight's Space</title>
+    <title>${xmlEscape(SITE_TITLE)}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#4f7193" />
-    <meta name="description" content="OddKnight's personal webpage. Thanks for stopping by!" />
+    <meta name="description" content="${xmlEscape(SITE_DESCRIPTION)}" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:site_name" content="${xmlEscape(SITE_TITLE)}" />
+    <meta property="og:title" content="${xmlEscape(SITE_TITLE)}" />
+    <meta property="og:description" content="${xmlEscape(SITE_DESCRIPTION)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${canonical}" />
+    <meta property="og:image" content="${image}" />
+    <meta property="og:image:alt" content="${xmlEscape(SITE_IMAGE_ALT)}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="${xmlEscape(SITE_TITLE)}" />
+    <meta name="twitter:description" content="${xmlEscape(SITE_DESCRIPTION)}" />
+    <meta name="twitter:image" content="${image}" />
+    <meta name="twitter:image:alt" content="${xmlEscape(SITE_IMAGE_ALT)}" />
+    <link rel="canonical" href="${canonical}" />
     <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
     <link rel="alternate" type="application/rss+xml" title="OddKnight's Space" href="/rss.xml" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/comic-mono@0.0.1/index.css" />

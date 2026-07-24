@@ -1,31 +1,45 @@
-<script lang="ts">
+  <script lang="ts">
   import { onMount } from "svelte";
   import { setMeta } from "../router";
-  import { installCounter } from "../behaviors/counter";
-  import { installLogoConfetti } from "../behaviors/logoConfetti";
-  import type { PostMeta } from "../types";
+  import VisitCounter from "../components/VisitCounter.svelte";
+  import { isSiteIndex, type PostMeta } from "../types";
 
   let posts: PostMeta[] = $state([]);
+  let loading: boolean = $state(true);
+  let loadError: string = $state("");
   let status: string = $state("");
+  let controller: AbortController | undefined;
+
+  async function loadPosts(): Promise<void> {
+    controller?.abort();
+    const request = new AbortController();
+    controller = request;
+    loading = true;
+    loadError = "";
+    try {
+      const response = await fetch("/content/index.json", { signal: request.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data: unknown = await response.json();
+      if (!isSiteIndex(data)) throw new Error("Invalid site index");
+      posts = data.posts.slice(0, 5);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      posts = [];
+      loadError = "Couldn’t load recent posts.";
+    } finally {
+      if (!request.signal.aborted) loading = false;
+    }
+  }
 
   onMount(() => {
-    setMeta(
-      "OddKnight's Space",
-      "OddKnight's personal webpage. Thanks for stopping by!",
-    );
-
-    fetch("/content/index.json")
-      .then((r) => r.json())
-      .then((data: { posts?: PostMeta[] }) => {
-        posts = (data.posts ?? []).slice(0, 5);
-      })
-      .catch(() => {});
-
-    const teardownCounter = installCounter();
-    const teardownConfetti = installLogoConfetti();
+    setMeta({
+      title: "OddKnight's Space",
+      description: "OddKnight's personal webpage. Thanks for stopping by!",
+      path: "/",
+    });
+    void loadPosts();
     return () => {
-      teardownCounter?.();
-      teardownConfetti?.();
+      controller?.abort();
     };
   });
 
@@ -57,18 +71,29 @@
 
 <div class="moving-text-container">
   <div class="moving-text-wrapper">
-    <div class="moving-text" id="visitCountDisplay">Oh hi!! (⁠ﾉ⁠◕⁠ヮ⁠◕⁠)⁠ﾉ⁠*⁠.⁠✧ ⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩</div>
+    <div class="moving-text">Oh hi!! (⁠ﾉ⁠◕⁠ヮ⁠◕⁠)⁠ﾉ⁠*⁠.⁠✧ ⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩<VisitCounter /></div>
   </div>
 </div>
 <h2 class="changing-text">And welcome</h2>
 <p>This website is the result of my long-held desire to have my own online presence. Don't expect much here!</p>
 <p>I mean, seriously. You're definitely gonna waste your time on this website.</p>
 <h2>Recent posts</h2>
-<ul style="list-style: none;">
-  {#each posts as p}
-    <li><a href="/blog/{p.slug}">{p.title}</a></li>
-  {/each}
-</ul>
+{#if loading}
+  <p class="load-state" role="status">Loading recent posts…</p>
+{:else if loadError}
+  <div class="load-state error-state" role="alert">
+    <p>{loadError}</p>
+    <button type="button" class="retry-button" onclick={loadPosts}>Try again</button>
+  </div>
+{:else if posts.length === 0}
+  <p class="load-state">No posts yet.</p>
+{:else}
+  <ul style="list-style: none;">
+    {#each posts as p}
+      <li><a href="/blog/{p.slug}">{p.title}</a></li>
+    {/each}
+  </ul>
+{/if}
 <h2>Funny things</h2>
 <ul style="list-style: none;">
   <li><a href="https://timer.oddknight.space">Shitty pomodoro timer</a></li>

@@ -5,7 +5,10 @@
   let rotated: boolean = $state(false);
 
   onMount(() => {
-    setMeta("The yo™ page");
+    setMeta({
+      title: "The yo™ page",
+      path: "/yo",
+    });
     return () => {
       document.body.style.transform = "";
       document.body.style.transition = "";
