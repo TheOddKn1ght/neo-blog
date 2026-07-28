@@ -403,7 +403,6 @@ async function writeIndexHtml(): Promise<void> {
     <link rel="canonical" href="${canonical}" />
     <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
     <link rel="alternate" type="application/rss+xml" title="OddKnight's Space" href="/rss.xml" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/comic-mono@0.0.1/index.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <script>(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
     <script type="module" src="/index.js"></script>

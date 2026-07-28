@@ -1,3 +1,11 @@
+@font-face {
+    font-family: "Comic Mono";
+    src: url("../fonts/ComicMono.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
     --bg: #eceff4;
     --fg: #252525;

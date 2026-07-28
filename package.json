@@ -8,7 +8,7 @@
     "check:types": "tsc --noEmit",
     "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
     "serve": "bun run server.ts",
-    "dev": "bun run build.ts --watch & bun run --watch server.ts",
+    "dev": "bun --watch run build.ts & bun --watch run server.ts",
     "start": "bun run build.ts && bun run server.ts"
   },
   "dependencies": {
