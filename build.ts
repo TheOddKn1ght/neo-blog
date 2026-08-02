@@ -5,8 +5,6 @@ import { join, basename, normalize } from "node:path";
 import type { BunPlugin } from "bun";
 import {
   SITE_DESCRIPTION,
-  SITE_IMAGE,
-  SITE_IMAGE_ALT,
   SITE_TITLE,
   SITE_URL,
 } from "./src/site";
@@ -378,7 +376,6 @@ async function minifyCss(): Promise<void> {
 
 async function writeIndexHtml(): Promise<void> {
   const canonical = `${SITE_URL}/`;
-  const image = `${SITE_URL}${SITE_IMAGE}`;
   const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -388,18 +385,6 @@ async function writeIndexHtml(): Promise<void> {
     <meta name="theme-color" content="#4f7193" />
     <meta name="description" content="${xmlEscape(SITE_DESCRIPTION)}" />
     <meta name="robots" content="index, follow" />
-    <meta property="og:site_name" content="${xmlEscape(SITE_TITLE)}" />
-    <meta property="og:title" content="${xmlEscape(SITE_TITLE)}" />
-    <meta property="og:description" content="${xmlEscape(SITE_DESCRIPTION)}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="${image}" />
-    <meta property="og:image:alt" content="${xmlEscape(SITE_IMAGE_ALT)}" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="${xmlEscape(SITE_TITLE)}" />
-    <meta name="twitter:description" content="${xmlEscape(SITE_DESCRIPTION)}" />
-    <meta name="twitter:image" content="${image}" />
-    <meta name="twitter:image:alt" content="${xmlEscape(SITE_IMAGE_ALT)}" />
     <link rel="canonical" href="${canonical}" />
     <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
     <link rel="alternate" type="application/rss+xml" title="OddKnight's Space" href="/rss.xml" />

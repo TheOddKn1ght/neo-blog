@@ -1,11 +1,5 @@
 import { tick } from "svelte";
-import {
-  SITE_DESCRIPTION,
-  SITE_IMAGE,
-  SITE_IMAGE_ALT,
-  SITE_TITLE,
-  SITE_URL,
-} from "./site";
+import { SITE_DESCRIPTION, SITE_URL } from "./site";
 
 type Listener = (path: string) => void;
 
@@ -126,27 +120,11 @@ export function setMeta(meta: PageMeta): void {
   const description = meta.description ?? SITE_DESCRIPTION;
   const path = meta.path ?? location.pathname;
   const type = meta.type ?? "website";
-  const customImage = meta.image !== undefined;
-  const image = meta.image ?? SITE_IMAGE;
-  const imageAlt = meta.imageAlt ?? (customImage ? meta.title : SITE_IMAGE_ALT);
   const canonicalUrl = absoluteUrl(path);
-  const imageUrl = absoluteUrl(image);
 
   document.title = meta.title;
   upsertMeta("name", "description", description);
   upsertMeta("name", "robots", meta.noIndex ? "noindex, nofollow" : "index, follow");
-  upsertMeta("property", "og:site_name", SITE_TITLE);
-  upsertMeta("property", "og:title", meta.title);
-  upsertMeta("property", "og:description", description);
-  upsertMeta("property", "og:type", type);
-  upsertMeta("property", "og:url", canonicalUrl);
-  upsertMeta("property", "og:image", imageUrl);
-  upsertMeta("property", "og:image:alt", imageAlt);
-  upsertMeta("name", "twitter:card", customImage ? "summary_large_image" : "summary");
-  upsertMeta("name", "twitter:title", meta.title);
-  upsertMeta("name", "twitter:description", description);
-  upsertMeta("name", "twitter:image", imageUrl);
-  upsertMeta("name", "twitter:image:alt", imageAlt);
 
   if (type === "article" && meta.publishedTime) {
     upsertMeta("property", "article:published_time", `${meta.publishedTime}T00:00:00Z`);
