@@ -4,7 +4,7 @@
   import ScrollTop from "../components/ScrollTop.svelte";
   import GalleryImage from "../components/GalleryImage.svelte";
   import GalleryModal from "../components/GalleryModal.svelte";
-  import { isSiteIndex, type GalleryItem } from "../types";
+  import { isGalleryIndex, type GalleryItem } from "../types";
 
   type StartViewTransition = (callback: () => void | Promise<void>) => {
     finished: Promise<void>;
@@ -136,11 +136,11 @@
     loading = true;
     error = "";
     try {
-      const response = await fetch("/content/index.json", { signal: request.signal });
+      const response = await fetch("/content/gallery.json", { signal: request.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data: unknown = await response.json();
-      if (!isSiteIndex(data)) throw new Error("Invalid site index");
-      items = data.gallery;
+      if (!isGalleryIndex(data)) throw new Error("Invalid gallery index");
+      items = data;
       await tick();
       if (!request.signal.aborted) await syncFromUrl();
     } catch (reason) {

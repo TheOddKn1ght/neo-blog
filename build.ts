@@ -409,10 +409,10 @@ async function main(): Promise<void> {
   await buildPages();
 
   const postMeta: PostMeta[] = posts.map(({ html, ...meta }) => meta);
-  await writeFile(
-    join(DIST, "content", "index.json"),
-    JSON.stringify({ posts: postMeta, gallery }),
-  );
+  await Promise.all([
+    writeFile(join(DIST, "content", "posts.json"), JSON.stringify(postMeta)),
+    writeFile(join(DIST, "content", "gallery.json"), JSON.stringify(gallery)),
+  ]);
 
   await writeSitemap(postMeta);
   await writeRss(posts);

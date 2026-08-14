@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { setMeta } from "../router";
   import VisitCounter from "../components/VisitCounter.svelte";
-  import { isSiteIndex, type PostMeta } from "../types";
+  import { isPostIndex, type PostMeta } from "../types";
 
   let posts: PostMeta[] = $state([]);
   let loading: boolean = $state(true);
@@ -17,11 +17,11 @@
     loading = true;
     loadError = "";
     try {
-      const response = await fetch("/content/index.json", { signal: request.signal });
+      const response = await fetch("/content/posts.json", { signal: request.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data: unknown = await response.json();
-      if (!isSiteIndex(data)) throw new Error("Invalid site index");
-      posts = data.posts.slice(0, 5);
+      if (!isPostIndex(data)) throw new Error("Invalid post index");
+      posts = data.slice(0, 5);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       posts = [];
