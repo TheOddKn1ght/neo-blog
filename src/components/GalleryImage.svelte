@@ -15,7 +15,7 @@
 <img
   bind:this={element}
   class:loaded
-  src={item.src}
+  src={item.thumbnail ?? item.src}
   alt={item.alt}
   loading="lazy"
   decoding="async"

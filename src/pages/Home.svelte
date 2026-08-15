@@ -8,6 +8,7 @@
   let loading: boolean = $state(true);
   let loadError: string = $state("");
   let status: string = $state("");
+  let sending: boolean = $state(false);
   let controller: AbortController | undefined;
 
   async function loadPosts(): Promise<void> {
@@ -49,7 +50,8 @@
     const ta = form.querySelector<HTMLTextAreaElement>("#ama-message");
     if (!ta) return;
     const message = ta.value.trim();
-    if (!message) return;
+    if (!message || sending) return;
+    sending = true;
     status = "Sending...";
     try {
       const r = await fetch("/message", {
@@ -65,6 +67,8 @@
       }
     } catch {
       status = "Could not send your message :(";
+    } finally {
+      sending = false;
     }
   }
 </script>
@@ -107,8 +111,8 @@
   <p class="ama-subtitle">Got a question, idea, or just want to say hi? Drop it below and include your contact info if you'd like a reply</p>
   <form id="ama-form" class="ama-form" onsubmit={onSubmit}>
     <label for="ama-message" class="ama-label">Your message</label>
-    <textarea id="ama-message" name="message" rows="4" required class="ama-textarea"></textarea>
-    <button type="submit" class="ama-button">Send</button>
+    <textarea id="ama-message" name="message" rows="4" maxlength="4000" required class="ama-textarea"></textarea>
+    <button type="submit" class="ama-button" disabled={sending}>{sending ? "Sending…" : "Send"}</button>
     <p id="ama-status" class="ama-status" aria-live="polite">{status}</p>
   </form>
 </div>

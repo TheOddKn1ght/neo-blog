@@ -3,7 +3,12 @@
   import SiteBrand from "./SiteBrand.svelte";
   import ThemeSwitch from "./ThemeSwitch.svelte";
 
+  let { path }: { path: string } = $props();
   let linksOpen: boolean = $state(false);
+
+  function current(href: string): "page" | undefined {
+    return path === href || (href === "/blog" && path.startsWith("/blog/")) ? "page" : undefined;
+  }
 
   function toggle(): void {
     linksOpen = !linksOpen;
@@ -37,12 +42,12 @@
       <li class="icons theme-icon"><ThemeSwitch /></li>
     </ul>
     <ul id="links" class:nav-active={linksOpen}>
-      <li><a href="/contact" onclick={closeLinks}>contact</a></li>
+      <li><a href="/contact" aria-current={current("/contact")} onclick={closeLinks}>contact</a></li>
       <li><a href="https://github.com/TheOddKn1ght" onclick={closeLinks}>github</a></li>
       <li><a href="https://myanimelist.net/profile/TheOddKnight" onclick={closeLinks}>myanimelist</a></li>
-      <li><a href="/gallery" onclick={closeLinks}>gallery</a></li>
+      <li><a href="/gallery" aria-current={current("/gallery")} onclick={closeLinks}>gallery</a></li>
       <li><a href="https://x.com/oddtheknight" onclick={closeLinks}>twitter</a></li>
-      <li><a href="/blog" onclick={closeLinks}>posts</a></li>
+      <li><a href="/blog" aria-current={current("/blog")} onclick={closeLinks}>posts</a></li>
     </ul>
   </div>
 </nav>

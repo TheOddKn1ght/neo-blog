@@ -1,7 +1,7 @@
 import { compile, preprocess } from "svelte/compiler";
 import { marked } from "marked";
 import { readdir, readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
-import { join, basename, normalize } from "node:path";
+import { join, basename, extname, normalize } from "node:path";
 import type { BunPlugin } from "bun";
 import {
   SITE_DESCRIPTION,
@@ -18,6 +18,9 @@ const DIST = join(ROOT, "dist");
 
 const STATIC_ROUTES = ["/", "/blog", "/gallery", "/contact"];
 const RSS_MAX_ITEMS = 20;
+const GALLERY_THUMBNAIL_WIDTH = 720;
+const GALLERY_THUMBNAIL_QUALITY = 76;
+const GALLERY_THUMBNAIL_WORKERS = 4;
 
 type Post = PostMeta & { html: string };
 type Frontmatter = Record<string, unknown>;
@@ -339,10 +342,46 @@ async function buildGallery(): Promise<GalleryItem[]> {
     return a.localeCompare(b);
   });
   const altText = await readGalleryAltText(imgs);
-  return imgs.map((file) => ({
-    src: `/gallery/${file}`,
-    alt: altText[file] ?? fallbackGalleryAlt(file),
-  }));
+  const thumbnailDir = join(DIST, "gallery", "thumbs");
+  await mkdir(thumbnailDir, { recursive: true });
+
+  const convertible = imgs.filter((file) => /\.jpe?g$|\.png$/i.test(file));
+  let nextThumbnail = 0;
+  async function thumbnailWorker(): Promise<void> {
+    while (nextThumbnail < convertible.length) {
+      const file = convertible[nextThumbnail++];
+      const thumbnailFile = `${basename(file, extname(file))}.webp`;
+      try {
+        await new Bun.Image(join(dir, file))
+          .resize(GALLERY_THUMBNAIL_WIDTH, undefined, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .webp({ quality: GALLERY_THUMBNAIL_QUALITY })
+          .write(join(thumbnailDir, thumbnailFile));
+      } catch (error) {
+        fail(file, `could not generate thumbnail: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+  await Promise.all(
+    Array.from(
+      { length: Math.min(GALLERY_THUMBNAIL_WORKERS, convertible.length) },
+      () => thumbnailWorker(),
+    ),
+  );
+
+  const items: GalleryItem[] = [];
+  for (const file of imgs) {
+    const thumbnailFile = `${basename(file, extname(file))}.webp`;
+    const canConvert = /\.jpe?g$|\.png$/i.test(file);
+    items.push({
+      src: `/gallery/${file}`,
+      ...(canConvert ? { thumbnail: `/gallery/thumbs/${thumbnailFile}` } : {}),
+      alt: altText[file] ?? fallbackGalleryAlt(file),
+    });
+  }
+  return items;
 }
 
 async function buildClient(): Promise<void> {
@@ -353,6 +392,7 @@ async function buildClient(): Promise<void> {
     target: "browser",
     format: "esm",
     minify: true,
+    splitting: true,
     naming: { entry: "[name].[ext]" },
   });
   if (!result.success) {
@@ -366,6 +406,7 @@ async function minifyCss(): Promise<void> {
     entrypoints: [join(STATIC, "css", "style.css")],
     outdir: join(DIST, "css"),
     minify: true,
+    external: ["*.ttf"],
     naming: "[name].[ext]",
   });
   if (!result.success) {

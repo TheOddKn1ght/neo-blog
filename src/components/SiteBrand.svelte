@@ -32,12 +32,15 @@
   let nextParticleId = 0;
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
   let hideTimer: ReturnType<typeof setTimeout> | undefined;
+  let cleanupTimer: ReturnType<typeof setTimeout> | undefined;
 
   function clearTimers(): void {
     if (hoverTimer) clearTimeout(hoverTimer);
     if (hideTimer) clearTimeout(hideTimer);
+    if (cleanupTimer) clearTimeout(cleanupTimer);
     hoverTimer = undefined;
     hideTimer = undefined;
+    cleanupTimer = undefined;
   }
 
   function showEmojiSoon(): void {
@@ -61,6 +64,7 @@
   }
 
   function burst(): void {
+    if (cleanupTimer) clearTimeout(cleanupTimer);
     particles = Array.from({ length: 500 }, () => {
       const angle = (Math.random() - 0.5) * 60;
       const velocity = 100 + Math.random() * 200;
@@ -75,10 +79,10 @@
         duration: 2000 + Math.random() * 1500,
       };
     });
-  }
-
-  function removeParticle(id: number): void {
-    particles = particles.filter((particle) => particle.id !== id);
+    cleanupTimer = setTimeout(() => {
+      particles = [];
+      cleanupTimer = undefined;
+    }, 3600);
   }
 
   function onBrandClick(event: MouseEvent): void {
@@ -131,6 +135,5 @@
     style:--x={`${particle.x}px`}
     style:--rotation={`${particle.rotation}deg`}
     style:--duration={`${particle.duration}ms`}
-    onanimationend={() => removeParticle(particle.id)}
   ></div>
 {/each}

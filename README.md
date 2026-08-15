@@ -35,6 +35,10 @@ descending on the listing page and grouped by year.
 1. Drop the image in `static/gallery/`, e.g. `static/gallery/38.jpg`.
 2. `bun run build`.
 
+The build uses Bun's built-in image pipeline to generate 720px-wide WebP
+previews in `dist/gallery/thumbs/`. The full-resolution image is still used in
+the viewer; no external image tooling is required.
+
 The gallery is sorted descending by numeric filename stem (so `38.jpg` appears
 before `37.png`), then non-numeric filenames alphabetically.
 

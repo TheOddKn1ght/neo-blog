@@ -1,4 +1,4 @@
-import { join, extname, normalize } from "node:path";
+import { join, extname, normalize, relative } from "node:path";
 
 const ROOT = import.meta.dir;
 const DIST = join(ROOT, "dist");
@@ -36,11 +36,35 @@ function json(status: number, body: unknown): Response {
   });
 }
 
-async function tryFile(path: string): Promise<Response | null> {
+function cacheControl(path: string): string {
+  const ext = extname(path).toLowerCase();
+  if (ext === ".html" || ext === ".json") return "no-cache";
+  if ([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".svg", ".ico", ".ttf", ".woff", ".woff2"].includes(ext)) {
+    return "public, max-age=604800, stale-while-revalidate=86400";
+  }
+  return "public, max-age=3600, must-revalidate";
+}
+
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "X-Frame-Options": "DENY",
+};
+
+async function tryFile(path: string, req: Request): Promise<Response | null> {
   const file = Bun.file(path);
   if (!(await file.exists())) return null;
   const type = MIME[extname(path).toLowerCase()] ?? "application/octet-stream";
-  return new Response(file, { headers: { "Content-Type": type } });
+  const etag = `W/\"${file.size}-${file.lastModified}\"`;
+  const headers = {
+    ...SECURITY_HEADERS,
+    "Content-Type": type,
+    "Cache-Control": cacheControl(path),
+    ETag: etag,
+  };
+  if (req.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });
+  return new Response(req.method === "HEAD" ? null : file, { headers });
 }
 
 async function handleMessage(req: Request): Promise<Response> {
@@ -102,24 +126,29 @@ const server = Bun.serve({
       return new Response("method not allowed", { status: 405 });
     }
 
-    let pathname = decodeURIComponent(url.pathname);
+    let pathname: string;
+    try {
+      pathname = decodeURIComponent(url.pathname);
+    } catch {
+      return new Response("bad request", { status: 400, headers: SECURITY_HEADERS });
+    }
     if (pathname.includes("\0")) return new Response("bad request", { status: 400 });
 
     const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "/");
     let filePath = join(DIST, safe);
-    if (!filePath.startsWith(DIST)) return new Response("forbidden", { status: 403 });
+    if (relative(DIST, filePath).startsWith("..")) return new Response("forbidden", { status: 403, headers: SECURITY_HEADERS });
 
     if (safe.endsWith("/")) filePath = join(filePath, "index.html");
 
-    const direct = await tryFile(filePath);
+    const direct = await tryFile(filePath, req);
     if (direct) return direct;
 
     if (!extname(safe)) {
-      const fallback = await tryFile(join(DIST, "index.html"));
+      const fallback = await tryFile(join(DIST, "index.html"), req);
       if (fallback) return fallback;
     }
 
-    return new Response("not found", { status: 404 });
+    return new Response("not found", { status: 404, headers: SECURITY_HEADERS });
   },
 });
 

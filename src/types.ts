@@ -20,6 +20,7 @@ export type Page = {
 
 export type GalleryItem = {
   src: string;
+  thumbnail?: string;
   alt: string;
 };
 
@@ -60,7 +61,12 @@ export function isPage(value: unknown): value is Page {
 }
 
 export function isGalleryItem(value: unknown): value is GalleryItem {
-  return isRecord(value) && typeof value.src === "string" && typeof value.alt === "string";
+  return (
+    isRecord(value) &&
+    typeof value.src === "string" &&
+    hasOptionalString(value, "thumbnail") &&
+    typeof value.alt === "string"
+  );
 }
 
 export function isPostIndex(value: unknown): value is PostMeta[] {

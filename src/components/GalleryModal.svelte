@@ -39,6 +39,13 @@
     return candidate;
   }
 
+  function preloadAround(currentIndex: number): void {
+    for (const nearby of [wrap(currentIndex - 1), wrap(currentIndex + 1)]) {
+      const image = new Image();
+      image.src = items[nearby].src;
+    }
+  }
+
   function navigate(direction: "left" | "right"): void {
     clearTimers();
     targetIndex = wrap(targetIndex + (direction === "left" ? 1 : -1));
@@ -46,6 +53,7 @@
     swapTimer = setTimeout(() => {
       visibleIndex = targetIndex;
       onNavigate(targetIndex);
+      preloadAround(targetIndex);
       phase = direction === "left" ? "slide-in-left" : "slide-in-right";
       swapTimer = undefined;
       finishTimer = setTimeout(() => {
@@ -118,6 +126,7 @@
 
   onMount(() => {
     document.body.classList.add("modal-open");
+    preloadAround(visibleIndex);
     closeButton?.focus({ preventScroll: true });
   });
 
@@ -139,6 +148,7 @@
       class={phase}
       src={items[visibleIndex].src}
       alt={items[visibleIndex].alt}
+      decoding="async"
       ontouchstart={onTouchStart}
       ontouchend={onTouchEnd}
     />

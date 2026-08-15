@@ -58,6 +58,25 @@ body {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 11000;
+    padding: 0.55rem 0.8rem;
+    border-radius: 5px;
+    background: var(--fg);
+    color: var(--bg);
+    transform: translateY(-200%);
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 3px;
+}
+
 footer div img,
 #nav-icon {
     filter: var(--footer-filter);
@@ -290,6 +309,7 @@ nav > div > ul > li > a {
 
 nav > div.nav-right > ul > li > a { padding: 0.5em; }
 nav > div > ul > li > a:hover { color: var(--fg) !important; }
+nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 0.25em; }
 
 .nav-left { float: left; }
 .nav-left ul li {
@@ -489,6 +509,7 @@ nav .nav-left a:hover .sitename { text-decoration: underline; }
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    cursor: pointer;
 }
 
 #scroll-top-btn.show {
@@ -704,6 +725,11 @@ body.modal-open { overflow: hidden; }
     border-color: var(--cyan);
 }
 
+.ama-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
 .ama-status {
     min-height: 1.2em;
     margin-top: 0.1em;
@@ -833,6 +859,15 @@ li.theme-icon { display: inline-flex; align-items: center; vertical-align: middl
     #links a:hover {
         background: var(--gray);
         text-decoration: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
