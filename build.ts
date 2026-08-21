@@ -194,6 +194,24 @@ function minifyHtml(html: string): string {
     .trim();
 }
 
+function absoluteSiteUrl(path: string): string {
+  return new URL(path, SITE_URL).href;
+}
+
+function absoluteRssMediaUrls(html: string): string {
+  return html.replace(
+    /\b(src|srcset|poster)=(['"])(.*?)\2/gi,
+    (_match, attribute: string, quote: string, value: string) => {
+      const absoluteValue = attribute.toLowerCase() === "srcset"
+        ? value.replace(/(^|,\s*)([^,\s]+)(?=\s|,|$)/g, (_candidate, prefix: string, url: string) => {
+            return `${prefix}${absoluteSiteUrl(url)}`;
+          })
+        : absoluteSiteUrl(value);
+      return `${attribute}=${quote}${absoluteValue}${quote}`;
+    },
+  );
+}
+
 async function writeSitemap(posts: PostMeta[]): Promise<void> {
   const today = new Date().toISOString().slice(0, 10);
   const lines: string[] = [];
@@ -219,7 +237,7 @@ ${lines.join("\n")}
 async function writeRss(posts: Post[]): Promise<void> {
   const items = posts.slice(0, RSS_MAX_ITEMS).map((p) => {
     const link = `${SITE_URL}/blog/${encodeURIComponent(p.slug)}`;
-    const safeHtml = p.html.replace(/]]>/g, "]]]]><![CDATA[>");
+    const safeHtml = absoluteRssMediaUrls(p.html).replace(/]]>/g, "]]]]><![CDATA[>");
     return `  <item>
     <title>${xmlEscape(p.title)}</title>
     <link>${link}</link>
