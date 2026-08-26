@@ -12,7 +12,6 @@
     "start": "bun run build.ts && bun run server.ts"
   },
   "dependencies": {
-    "marked": "14.1.4",
     "svelte": "5.55.10"
   },
   "devDependencies": {

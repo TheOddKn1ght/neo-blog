@@ -1,5 +1,4 @@
 import { compile, preprocess } from "svelte/compiler";
-import { marked } from "marked";
 import { readdir, readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
 import { join, basename, extname, normalize } from "node:path";
 import type { BunPlugin } from "bun";
@@ -20,7 +19,7 @@ const STATIC_ROUTES = ["/", "/blog", "/gallery", "/contact"];
 const RSS_MAX_ITEMS = 20;
 const GALLERY_THUMBNAIL_WIDTH = 720;
 const GALLERY_THUMBNAIL_QUALITY = 76;
-const GALLERY_THUMBNAIL_WORKERS = 4;
+const GALLERY_THUMBNAIL_WORKERS = 8;
 
 type Post = PostMeta & { html: string };
 type Frontmatter = Record<string, unknown>;
@@ -149,7 +148,13 @@ async function buildPosts(): Promise<Post[]> {
     const description = requiredString(file, meta, "description");
     validateDate(file, date);
     const image = await validateImage(file, meta);
-    const html = await marked.parse(body, { gfm: true, breaks: false });
+    const html = Bun.markdown.html(body, {
+      tables: true,
+      strikethrough: true,
+      tasklists: true,
+      autolinks: true,
+      hardSoftBreaks: false,
+    });
     posts.push({
       slug,
       title,
@@ -285,7 +290,13 @@ async function buildPages(): Promise<void> {
     const title = requiredString(file, meta, "title");
     const description = requiredString(file, meta, "description");
     const image = await validateImage(file, meta);
-    const html = await marked.parse(body, { gfm: true, breaks: false });
+    const html = Bun.markdown.html(body, {
+      tables: true,
+      strikethrough: true,
+      tasklists: true,
+      autolinks: true,
+      hardSoftBreaks: false,
+    });
     await writeFile(
       join(DIST, "content", "pages", `${slug}.json`),
       JSON.stringify({

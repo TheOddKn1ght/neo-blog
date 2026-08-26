@@ -1,6 +1,6 @@
 # oddknight.space
 
-Static SPA. Svelte + Bun + TypeScript + marked. Live at [oddknight.space](https://oddknight.space).
+Static SPA. Svelte + Bun + TypeScript. Live at [oddknight.space](https://oddknight.space).
 
 ## Develop
 
