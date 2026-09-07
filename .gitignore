@@ -7,3 +7,5 @@ deploy.sh
 .env
 .env.*
 .claude
+.build-cache.json
+.build-cache.json.tmp

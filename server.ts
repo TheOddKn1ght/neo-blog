@@ -67,7 +67,7 @@ async function tryFile(path: string, req: Request): Promise<Response | null> {
   return new Response(req.method === "HEAD" ? null : file, { headers });
 }
 
-async function handleMessage(req: Request): Promise<Response> {
+export async function handleMessage(req: Request): Promise<Response> {
   if (!TG_TOKEN || !TG_CHAT) {
     console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is empty");
     return json(500, { error: "server misconfigured" });
@@ -107,49 +107,51 @@ async function handleMessage(req: Request): Promise<Response> {
   }
 }
 
-const server = Bun.serve({
-  port: PORT,
-  async fetch(req) {
-    const url = new URL(req.url);
+if (import.meta.main) {
+  const server = Bun.serve({
+    port: PORT,
+    async fetch(req) {
+      const url = new URL(req.url);
 
-    if (url.pathname === "/message") {
-      if (req.method !== "POST") {
-        return new Response("method not allowed", {
-          status: 405,
-          headers: { Allow: "POST" },
-        });
+      if (url.pathname === "/message") {
+        if (req.method !== "POST") {
+          return new Response("method not allowed", {
+            status: 405,
+            headers: { Allow: "POST" },
+          });
+        }
+        return handleMessage(req);
       }
-      return handleMessage(req);
-    }
 
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      return new Response("method not allowed", { status: 405 });
-    }
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        return new Response("method not allowed", { status: 405 });
+      }
 
-    let pathname: string;
-    try {
-      pathname = decodeURIComponent(url.pathname);
-    } catch {
-      return new Response("bad request", { status: 400, headers: SECURITY_HEADERS });
-    }
-    if (pathname.includes("\0")) return new Response("bad request", { status: 400 });
+      let pathname: string;
+      try {
+        pathname = decodeURIComponent(url.pathname);
+      } catch {
+        return new Response("bad request", { status: 400, headers: SECURITY_HEADERS });
+      }
+      if (pathname.includes("\0")) return new Response("bad request", { status: 400 });
 
-    const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "/");
-    let filePath = join(DIST, safe);
-    if (relative(DIST, filePath).startsWith("..")) return new Response("forbidden", { status: 403, headers: SECURITY_HEADERS });
+      const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "/");
+      let filePath = join(DIST, safe);
+      if (relative(DIST, filePath).startsWith("..")) return new Response("forbidden", { status: 403, headers: SECURITY_HEADERS });
 
-    if (safe.endsWith("/")) filePath = join(filePath, "index.html");
+      if (safe.endsWith("/")) filePath = join(filePath, "index.html");
 
-    const direct = await tryFile(filePath, req);
-    if (direct) return direct;
+      const direct = await tryFile(filePath, req);
+      if (direct) return direct;
 
-    if (!extname(safe)) {
-      const fallback = await tryFile(join(DIST, "index.html"), req);
-      if (fallback) return fallback;
-    }
+      if (!extname(safe)) {
+        const fallback = await tryFile(join(DIST, "index.html"), req);
+        if (fallback) return fallback;
+      }
 
-    return new Response("not found", { status: 404, headers: SECURITY_HEADERS });
-  },
-});
+      return new Response("not found", { status: 404, headers: SECURITY_HEADERS });
+    },
+  });
 
-console.log(`Listening on http://localhost:${server.port}`);
+  console.log(`Listening on http://localhost:${server.port}`);
+}

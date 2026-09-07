@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["bun"]
   },
-  "include": ["src/**/*", "build.ts", "server.ts"]
+  "include": ["src/**/*", "build.ts", "build-cache.ts", "build.test.ts", "server.ts", "dev.ts"]
 }

@@ -6,12 +6,31 @@ Static SPA. Svelte + Bun + TypeScript. Live at [oddknight.space](https://oddknig
 
 ```sh
 bun install
-bun run build      # → dist/
+bun run dev        # Svelte/CSS hot reloading on :3000
+
+# Production
+bun run build      # incremental build → dist/
+bun run build -f   # force a clean rebuild
 bun run serve      # serves dist/ on :3000 and proxies /message to Telegram
 bun run start      # build + serve
 ```
 
 `PORT`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` are read from the environment.
+
+`bun run dev` uses Vite and the official Svelte plugin for component and CSS hot
+reloading. Changes in `content/` and static assets refresh the browser after content
+generation succeeds; invalid content shows an error overlay and preserves the last
+working content. Generated development files live in a temporary directory and are
+removed on shutdown. `/message` uses the same Telegram handler as production.
+Restart the dev command after changing `build.ts`, `server.ts`, or `dev.ts`.
+
+Production builds cache content fingerprints in `.build-cache.json`. Unchanged
+bundles, CSS, content, static files, and individual gallery thumbnails are reused.
+Changed inputs rebuild their affected steps; removed inputs remove their outputs.
+Missing or modified outputs are regenerated. Changes to build scripts, dependencies,
+TypeScript configuration, or the Bun version invalidate the cache. `-f` (or `--force`)
+clears `dist/` and rebuilds everything. A failed build invalidates the cache so the
+next run starts clean. Client source changes rebuild the client bundle as a whole.
 
 ## Add a blog post
 
@@ -51,10 +70,11 @@ Drop a markdown file in `content/pages/`. It becomes available as JSON at
 ## Project layout
 
 ```
+dev.ts            # Vite HMR + content watching + development message endpoint
 build.ts          # scans content/, compiles Svelte, copies static/ → dist/
 server.ts         # Bun.serve: static dist/ + SPA fallback + Telegram proxy
 src/
-  main.ts         # mounts Svelte App to <body>
+  index.ts        # mounts Svelte App to <body>
   router.ts       # history-API SPA router
   App.svelte      # route switch
   components/     # Nav, Footer, ScrollTop
