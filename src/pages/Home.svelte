@@ -104,6 +104,7 @@
   <li><a href="https://color.oddknight.space">Shitty color picker</a></li>
   <li><a href="https://typefr.oddknight.space">Shitty opinionated french typing tool</a></li>
   <li><a href="https://wake.oddknight.space">Shitty no sleep page</a></li>
+  <li><a href="/blog/switch-tab-ctrl-number">Shitty Firefox tab switcher (Ctrl+1..9 for Linux)</a></li>
 </ul>
 
 <div class="ama-card">
