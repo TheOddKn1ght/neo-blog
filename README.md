@@ -85,3 +85,12 @@ content/
   pages/*.md      # extra static pages
 static/           # copied verbatim to dist/ (css, img, gallery, fonts, robots.txt)
 ```
+
+## Code highlighting
+
+Fenced Markdown code blocks with a language (for example `js`, `json`, or `sh`)
+are highlighted at build time with Shiki. Colors follow the site's light/dark
+setting, and long lines scroll horizontally. Unknown languages and unlabeled
+blocks remain plain text; inline code is unchanged. No highlighting JavaScript
+is shipped to the browser. Changes to `markdown.ts` invalidate the build cache;
+restart the dev server after editing the renderer.

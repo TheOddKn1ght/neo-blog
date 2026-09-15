@@ -190,7 +190,33 @@ code, kbd, pre, samp {
     font-size: 0.98em;
 }
 
-pre { background-color: unset !important; }
+pre {
+    background: var(--code_bg) !important;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+pre:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+pre.shiki, pre.shiki span { color: var(--shiki-light, inherit); }
+
+:root[data-theme="dark"] pre.shiki,
+:root[data-theme="dark"] pre.shiki span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style, normal) !important;
+    font-weight: var(--shiki-dark-font-weight, normal) !important;
+    text-decoration: var(--shiki-dark-text-decoration, none) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) pre.shiki,
+    :root:not([data-theme="light"]) pre.shiki span {
+        color: var(--shiki-dark) !important;
+        font-style: var(--shiki-dark-font-style, normal) !important;
+        font-weight: var(--shiki-dark-font-weight, normal) !important;
+        text-decoration: var(--shiki-dark-text-decoration, none) !important;
+    }
+}
 
 code {
     white-space: pre-wrap;
@@ -202,6 +228,11 @@ code {
 }
 
 pre > code {
+    white-space: pre;
+    overflow-wrap: normal;
+    color: inherit;
+    background: transparent;
+    min-width: max-content;
     display: block;
     padding: 10px 15px;
 }

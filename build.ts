@@ -1,3 +1,4 @@
+import { renderMarkdown } from "./markdown";
 import { compile, preprocess } from "svelte/compiler";
 import { readdir, readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
 import { join, basename, dirname, extname, normalize, relative } from "node:path";
@@ -149,13 +150,7 @@ async function buildPosts(output: string): Promise<Post[]> {
     const description = requiredString(file, meta, "description");
     validateDate(file, date);
     const image = await validateImage(file, meta);
-    const html = Bun.markdown.html(body, {
-      tables: true,
-      strikethrough: true,
-      tasklists: true,
-      autolinks: true,
-      hardSoftBreaks: false,
-    });
+    const html = await renderMarkdown(body);
     posts.push({
       slug,
       title,
@@ -291,13 +286,7 @@ async function buildPages(output: string): Promise<void> {
     const title = requiredString(file, meta, "title");
     const description = requiredString(file, meta, "description");
     const image = await validateImage(file, meta);
-    const html = Bun.markdown.html(body, {
-      tables: true,
-      strikethrough: true,
-      tasklists: true,
-      autolinks: true,
-      hardSoftBreaks: false,
-    });
+    const html = await renderMarkdown(body);
     await writeFile(
       join(output, "content", "pages", `${slug}.json`),
       JSON.stringify({
@@ -483,7 +472,7 @@ async function main(): Promise<void> {
   }
   const manifest = join(ROOT, ".build-cache.json");
   const version = fingerprint(Bun.version + await fingerprintFiles([
-    join(ROOT, "build.ts"), join(ROOT, "build-cache.ts"),
+    join(ROOT, "build.ts"), join(ROOT, "build-cache.ts"), join(ROOT, "markdown.ts"),
     join(ROOT, "package.json"), join(ROOT, "bun.lock"), join(ROOT, "tsconfig.json"),
   ]));
   const cache = new BuildCache(DIST, manifest, version);
