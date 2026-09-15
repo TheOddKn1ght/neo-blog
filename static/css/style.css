@@ -198,6 +198,58 @@ pre {
 
 pre:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 
+.code-block {
+    margin: 1em 0;
+    border-radius: 5px;
+    background: var(--code_bg);
+}
+
+.code-block > pre { margin: 0; }
+
+.code-block-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 4px 0;
+}
+
+.code-copy-button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 28px;
+    padding: 7px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--fg);
+    opacity: 0.45;
+    cursor: pointer;
+}
+
+.code-copy-button svg { width: 14px; height: 14px; }
+.code-block:hover .code-copy-button,
+.code-copy-button:focus-visible { opacity: 1; }
+.code-copy-button:hover { background: var(--bg); }
+.code-copy-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (hover: none) {
+    .code-copy-button { width: 36px; height: 36px; opacity: 0.7; }
+}
+
+.code-copy-button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.code-copy-button:disabled { cursor: wait; }
+
+@media print { .code-block-toolbar { display: none; } }
+
+
 pre.shiki, pre.shiki span { color: var(--shiki-light, inherit); }
 
 :root[data-theme="dark"] pre.shiki,

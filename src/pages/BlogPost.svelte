@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MarkdownContent from "../components/MarkdownContent.svelte";
   import { onMount } from "svelte";
   import { setMeta } from "../router";
   import ScrollTop from "../components/ScrollTop.svelte";
@@ -79,6 +80,6 @@
   <article>
     <h1 class="title">{post.title}</h1>
     <p class="subtitle"><time datetime={post.date}>{post.date}</time></p>
-    {@html post.html}
+    <MarkdownContent html={post.html} />
   </article>
 {/if}

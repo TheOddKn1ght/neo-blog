@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MarkdownContent from "../components/MarkdownContent.svelte";
   import { onMount } from "svelte";
   import { setMeta } from "../router";
   import { isPage, type Page } from "../types";
@@ -56,5 +57,5 @@
   </div>
 {:else if page}
   <h1 class="title">{page.title}</h1>
-  {@html page.html}
+  <MarkdownContent html={page.html} />
 {/if}
