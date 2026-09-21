@@ -95,3 +95,60 @@ blocks remain plain text; inline code is unchanged. Each block has a Copy code
 button with success/error feedback. Clipboard access requires HTTPS or localhost. No highlighting JavaScript
 is shipped to the browser. Changes to `markdown.ts` invalidate the build cache;
 restart the dev server after editing the renderer.
+
+## Experimental static Nginx setup (no Docker)
+
+`scripts/setup-experimental.sh` builds with Bun, then publishes `dist/` for Nginx
+to serve directly. Bun is only a build tool: there is no running Bun server,
+application systemd service, or runtime environment file.
+
+On a Debian/Ubuntu server with systemd, use an existing checkout owned by a
+non-root deployment account. Replace the example account and domain:
+
+```sh
+sudo bash scripts/setup-experimental.sh --domain oddknight.space --user deploy --check
+sudo bash scripts/setup-experimental.sh --domain oddknight.space --user deploy --apply
+```
+
+Inspection is the default and does not write or install anything. Apply installs
+missing packages and Bun 1.4.2, installs locked dependencies, and builds as the
+specified user. It publishes a separate release under `/var/www/neo-blog/releases`,
+then atomically switches `/var/www/neo-blog/current`. Nginx serves that directory
+with SPA fallback for routes, proper 404s for missing assets/content, and no-cache
+headers so deployments do not leave stale entry scripts in browsers.
+
+The installer inspects existing Nginx configuration and the enabled-site link,
+checks for the domain in standard site locations, and checks its deployment marker.
+Matching config is reused; differing or unmanaged config stops setup unchanged.
+A running legacy `neo-blog.service` also stops setup: migrate its config and
+stop/disable the service manually first. Old environment files are preserved and
+unused by this static deployment. There is no overwrite/force option.
+
+Use `--web-root` for a different managed release location, `--bun-version` to select
+an existing Bun version, and `--bun-bin` for a binary outside `~/.bun/bin`.
+Existing Bun installations are never upgraded automatically.
+
+**The message form requires a separate backend.** Without one, `/message` returns
+503 with a JSON error. To keep the form working, pass an existing backend origin
+such as `--message-upstream http://127.0.0.1:9000`; Nginx forwards only `/message`
+to that backend. Its Telegram credentials stay on that backend, never in `dist/`.
+The script does not install or start a message backend.
+
+HTTP is the default. For HTTPS, supply an existing certificate and matching key on
+both inspection and apply invocations:
+
+```sh
+sudo bash scripts/setup-experimental.sh --domain oddknight.space --user deploy \
+  --tls-cert /etc/letsencrypt/live/oddknight.space/fullchain.pem \
+  --tls-key /etc/letsencrypt/live/oddknight.space/privkey.pem --apply
+```
+
+Certificate issuance/renewal, DNS, firewall rules, cloning, and account creation
+remain manual. The script checks standard Nginx `sites-enabled` and `conf.d` files;
+custom include hierarchies need manual review. It does not run on macOS.
+
+Previous releases are retained for manual rollback/cleanup. Build failures leave
+the served release intact. Nginx validation runs before the release switch; reload
+or HTTP-check failures restore the previous release link. New packages and config
+files are retained if a later step fails. Use this experimental script on a staging
+host first; a full Linux deployment has not been verified locally.
