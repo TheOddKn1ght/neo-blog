@@ -100,6 +100,7 @@
 {/if}
 <h2>Funny things</h2>
 <ul style="list-style: none;">
+  <li><a href="https://smallbin.oddknight.space">Shitty file sharing</a></li>
   <li><a href="https://timer.oddknight.space">Shitty pomodoro timer</a></li>
   <li><a href="https://color.oddknight.space">Shitty color picker</a></li>
   <li><a href="https://typefr.oddknight.space">Shitty opinionated french typing tool</a></li>
