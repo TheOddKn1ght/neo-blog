@@ -1,11 +1,9 @@
 import { join, extname, normalize, relative } from "node:path";
 
 const ROOT = import.meta.dir;
-const DIST = join(ROOT, "dist");
+const DIST = process.env.DIST_DIR ?? join(ROOT, "dist");
 const PORT = Number(process.env.PORT ?? 3000);
-const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? "";
-const TG_CHAT = process.env.TELEGRAM_CHAT_ID ?? "";
-const MAX_MESSAGE_BYTES = 1 << 14;
+
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -67,50 +65,7 @@ async function tryFile(path: string, req: Request): Promise<Response | null> {
   return new Response(req.method === "HEAD" ? null : file, { headers });
 }
 
-export async function handleMessage(req: Request): Promise<Response> {
-  if (!TG_TOKEN || !TG_CHAT) {
-    console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is empty");
-    return json(500, { error: "server misconfigured" });
-  }
-  const len = Number(req.headers.get("content-length") ?? "0");
-  if (len > MAX_MESSAGE_BYTES) return json(413, { error: "payload too large" });
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return json(400, { error: "invalid json" });
-  }
-  const message =
-    body && typeof body === "object" && typeof (body as Record<string, unknown>).message === "string"
-      ? ((body as Record<string, string>).message).trim()
-      : "";
-  if (!message) return json(400, { error: "missing 'message' field" });
-
-  try {
-    const tg = await fetch(
-      `https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TG_CHAT, text: message }),
-        signal: AbortSignal.timeout(10_000),
-      },
-    );
-    if (tg.ok) return json(200, { ok: true });
-    const detail = await tg.text().catch(() => "");
-    console.error("telegram error:", tg.status, detail.slice(0, 500));
-    return json(502, { error: "telegram error" });
-  } catch (err) {
-    console.error("telegram request failed:", err);
-    return json(502, { error: "telegram error" });
-  }
-}
-
-if (import.meta.main) {
-  const server = Bun.serve({
-    port: PORT,
-    async fetch(req) {
+export async function staticRequest(req: Request, dist = DIST): Promise<Response> {
       const url = new URL(req.url);
 
       if (url.pathname === "/message") {
@@ -120,7 +75,10 @@ if (import.meta.main) {
             headers: { Allow: "POST" },
           });
         }
-        return handleMessage(req);
+        const upstream = process.env.MESSAGE_UPSTREAM;
+        if (!upstream) return json(503, { error: "message endpoint unavailable" });
+        try { return await fetch(new URL("/message", upstream), {method:"POST",headers:{"Content-Type":"application/json"},body:await req.arrayBuffer(),signal:AbortSignal.timeout(12_000)}); }
+        catch { return json(502, {error:"message endpoint unavailable"}); }
       }
 
       if (req.method !== "GET" && req.method !== "HEAD") {
@@ -136,8 +94,8 @@ if (import.meta.main) {
       if (pathname.includes("\0")) return new Response("bad request", { status: 400 });
 
       const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "/");
-      let filePath = join(DIST, safe);
-      if (relative(DIST, filePath).startsWith("..")) return new Response("forbidden", { status: 403, headers: SECURITY_HEADERS });
+      let filePath = join(dist, safe);
+      if (relative(dist, filePath).startsWith("..")) return new Response("forbidden", { status: 403, headers: SECURITY_HEADERS });
 
       if (safe.endsWith("/")) filePath = join(filePath, "index.html");
 
@@ -145,13 +103,15 @@ if (import.meta.main) {
       if (direct) return direct;
 
       if (!extname(safe)) {
-        const fallback = await tryFile(join(DIST, "index.html"), req);
+        const fallback = await tryFile(join(filePath, "index.html"), req);
         if (fallback) return fallback;
       }
 
-      return new Response("not found", { status: 404, headers: SECURITY_HEADERS });
-    },
-  });
+      const missing = await tryFile(join(dist, "404.html"), req);
+      return new Response(missing?.body ?? "not found", {status:404,headers:missing?.headers ?? SECURITY_HEADERS});
+}
 
+if (import.meta.main) {
+  const server = Bun.serve({hostname:"127.0.0.1",port:PORT,maxRequestBodySize:1 << 14,fetch:(req) => staticRequest(req)});
   console.log(`Listening on http://localhost:${server.port}`);
 }

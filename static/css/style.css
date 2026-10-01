@@ -250,24 +250,25 @@ pre:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 @media print { .code-block-toolbar { display: none; } }
 
 
-pre.shiki, pre.shiki span { color: var(--shiki-light, inherit); }
-
-:root[data-theme="dark"] pre.shiki,
-:root[data-theme="dark"] pre.shiki span {
-    color: var(--shiki-dark) !important;
-    font-style: var(--shiki-dark-font-style, normal) !important;
-    font-weight: var(--shiki-dark-font-weight, normal) !important;
-    text-decoration: var(--shiki-dark-text-decoration, none) !important;
-}
-
+/* Zola's native light-dark() token colors follow the site's theme switch. */
+pre.giallo { color-scheme: light; }
+:root[data-theme="dark"] pre.giallo { color-scheme: dark; }
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) pre.shiki,
-    :root:not([data-theme="light"]) pre.shiki span {
-        color: var(--shiki-dark) !important;
-        font-style: var(--shiki-dark-font-style, normal) !important;
-        font-weight: var(--shiki-dark-font-weight, normal) !important;
-        text-decoration: var(--shiki-dark-text-decoration, none) !important;
-    }
+    :root:not([data-theme="light"]) pre.giallo { color-scheme: dark; }
+}
+.giallo-l {
+    display: inline-block;
+    min-height: 1lh;
+    width: 100%;
+}
+.giallo-ln {
+    display: inline-block;
+    user-select: none;
+    margin-right: 0.4em;
+    padding: 0.4em;
+    min-width: 3ch;
+    text-align: right;
+    opacity: 0.8;
 }
 
 code {
@@ -1018,3 +1019,26 @@ li.theme-icon { display: inline-flex; align-items: center; vertical-align: middl
     h2, h3, p { orphans: 3; widows: 3; }
     h2, h3 { page-break-after: avoid; }
 }
+
+
+  #yo {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+  }
+  #yo:hover {
+    background-color: #fff;
+    color: #000;
+  }
+
+[hidden] { display: none !important; }
+

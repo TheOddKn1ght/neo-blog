@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="moving-text-container">
+  <div class="moving-text-wrapper">
+    <div class="moving-text">Oh hi!! (⁠ﾉ⁠◕⁠ヮ⁠◕⁠)⁠ﾉ⁠*⁠.⁠✧ ⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩⋆｡°✩<span id="visit-counter"></span></div>
+  </div>
+</div>
+<h2 class="changing-text">And welcome</h2>
+<p>This website is the result of my long-held desire to have my own online presence. Don't expect much here!</p>
+<p>I mean, seriously. You're definitely gonna waste your time on this website.</p>
+<h2>Recent posts</h2>
+{% set blog = get_section(path="blog/_index.md") %}<ul style="list-style: none;">{% for post in blog.pages %}{% if loop.index <= 5 %}<li><a href="/blog/{{ post.slug }}">{{ post.title }}</a></li>{% endif %}{% endfor %}</ul>
+<h2>Funny things</h2>
+<ul style="list-style: none;">
+  <li><a href="https://smallbin.oddknight.space">Shitty file sharing</a></li>
+  <li><a href="https://timer.oddknight.space">Shitty pomodoro timer</a></li>
+  <li><a href="https://color.oddknight.space">Shitty color picker</a></li>
+  <li><a href="https://typefr.oddknight.space">Shitty opinionated french typing tool</a></li>
+  <li><a href="https://wake.oddknight.space">Shitty no sleep page</a></li>
+  <li><a href="/blog/switch-tab-ctrl-number">Shitty Firefox tab switcher (Ctrl+1..9 for Linux)</a></li>
+</ul>
+
+<div class="ama-card">
+  <h2 class="ama-title">Ask me anything</h2>
+  <p class="ama-subtitle">Got a question, idea, or just want to say hi? Drop it below and include your contact info if you'd like a reply</p>
+  <form id="ama-form" class="ama-form" method="post" action="/message">
+    <label for="ama-message" class="ama-label">Your message</label>
+    <textarea id="ama-message" name="message" rows="4" maxlength="4000" required class="ama-textarea"></textarea>
+    <button type="submit" class="ama-button" disabled>Send</button>
+    <p id="ama-status" class="ama-status" aria-live="polite"></p><noscript><p class="ama-status">Enable JavaScript to send a message.</p></noscript>
+  </form>
+</div>
+{% endblock content %}
