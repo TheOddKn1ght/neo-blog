@@ -1,0 +1,24 @@
+base_url = "https://oddknight.space"
+title = "OddKnight's Space"
+description = "OddKnight's personal webpage. Thanks for stopping by!"
+output_dir = "dist"
+# Final HTML is minified by build.ts after Zola renders the pages.
+minify_html = false
+ignored_content = ["*.json"]
+generate_feeds = true
+feed_limit = 20
+feed_filenames = ["rss.xml"]
+compile_sass = false
+
+[markdown]
+lazy_async_image = true
+smart_punctuation = false
+bottom_footnotes = true
+
+
+[markdown.highlighting]
+style = "inline"
+light_theme = "github-light"
+dark_theme = "github-dark"
+add_color_scheme = false
+error_on_missing_language = false

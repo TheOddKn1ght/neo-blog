@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="title">List of blog posts</h1>
+{% set_global last_year = "" %}
+{% for post in section.pages %}
+{% set year = post.date | date(format="%Y") %}
+{% if year != last_year %}{% if not loop.first %}</ul></section>{% endif %}<section aria-labelledby="year-{{ year }}"><h2 id="year-{{ year }}">{{ year }}</h2><ul class="posts-list">{% set_global last_year = year %}{% endif %}
+<li><time datetime="{{ post.date | date(format='%Y-%m-%d') }}">{{ post.date | date(format='%Y-%m-%d') }}</time> <a href="/blog/{{ post.slug }}">{{ post.title }}</a></li>
+{% if loop.last %}</ul></section>{% endif %}
+{% endfor %}
+{% include "partials/scroll-top.html" %}
+{% endblock content %}

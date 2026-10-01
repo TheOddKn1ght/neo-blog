@@ -1,15 +1,5 @@
-<script lang="ts">
-  let { html }: { html: string } = $props();
-  let container: HTMLDivElement | undefined = $state();
-
-  $effect(() => {
-    // Recreate controls whenever the rendered Markdown changes.
-    html;
-    if (!container) return;
-    let disposed = false;
-    const cleanups: (() => void)[] = [];
-
-    for (const code of container.querySelectorAll<HTMLElement>("pre > code")) {
+export function installCodeCopy(): void {
+    for (const code of document.querySelectorAll<HTMLElement>(".markdown-content pre > code")) {
       const pre = code.parentElement!;
       const wrapper = document.createElement("div");
       wrapper.className = "code-block";
@@ -44,13 +34,13 @@
         button.disabled = true;
         try {
           await navigator.clipboard.writeText(code.textContent ?? "");
-          if (disposed) return;
+          
           showState("success");
         } catch {
-          if (disposed) return;
+          
           showState("error");
         } finally {
-          if (!disposed) {
+          {
             button.disabled = false;
             timer = setTimeout(() => {
               showState("copy");
@@ -59,17 +49,6 @@
         }
       };
       button.addEventListener("click", copy);
-      cleanups.push(() => {
-        clearTimeout(timer);
-        button.removeEventListener("click", copy);
-        wrapper.replaceWith(pre);
-      });
-    }
-    return () => {
-      disposed = true;
-      for (const cleanup of cleanups) cleanup();
-    };
-  });
-</script>
 
-<div bind:this={container}>{@html html}</div>
+    }
+}

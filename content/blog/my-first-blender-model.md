@@ -2,6 +2,8 @@
 date = "2024-04-06"
 title = "My first blender model"
 description = "My hideous first time modeling experience"
+
+[extra]
 image = "/img/my-first-blender-model/sheep.webp"
 imageAlt = "A low-poly sheep model"
 +++

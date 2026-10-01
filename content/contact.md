@@ -1,4 +1,6 @@
 +++
+path = "contact"
+template = "page.html"
 title = "Reach me"
 description = "OddKnight's contact information"
 +++

@@ -1,0 +1,23 @@
+<nav class="menu">
+  {% include "partials/brand.html" %}
+  <div class="nav-right">
+    <ul>
+      <li class="icons">
+        <button id="toggle-nav" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="links">
+          <div class="hamburger-icon">
+            <span></span><span></span><span></span>
+          </div>
+        </button>
+      </li>
+      <li class="icons theme-icon">{% include "partials/theme.html" %}</li>
+    </ul>
+    <ul id="links">
+      <li><a href="/contact"{% if current_path is starting_with(pat="/contact") %} aria-current="page"{% endif %}>contact</a></li>
+      <li><a href="https://github.com/TheOddKn1ght">github</a></li>
+      <li><a href="https://myanimelist.net/profile/TheOddKnight">myanimelist</a></li>
+      <li><a href="/gallery"{% if current_path is starting_with(pat="/gallery") %} aria-current="page"{% endif %}>gallery</a></li>
+      <li><a href="https://x.com/oddtheknight">twitter</a></li>
+      <li><a href="/blog"{% if current_path is starting_with(pat="/blog") %} aria-current="page"{% endif %}>posts</a></li>
+    </ul>
+  </div>
+</nav>

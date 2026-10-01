@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/scroll-top.html" %}<h1 class="title">Gallery</h1>
+{% set images = load_data(path="gallery-data.json") %}
+{% if images | length == 0 %}<p class="load-state">No gallery images yet.</p>{% else %}
+<div class="gallery">{% for image in images %}<button type="button" class="gallery-item" aria-label="Open {{ image.alt }}" data-src="{{ image.src }}" data-alt="{{ image.alt }}"><img src="{{ image.thumbnail | default(value=image.src) }}" alt="{{ image.alt }}" loading="lazy" decoding="async"></button>{% endfor %}</div>
+{% endif %}
+{% endblock content %}
