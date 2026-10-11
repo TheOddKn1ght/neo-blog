@@ -1,7 +1,16 @@
-const messageConfig = { token: process.env.TELEGRAM_BOT_TOKEN ?? "", chat: process.env.TELEGRAM_CHAT_ID ?? "" };
+const messageConfig = {
+  token: process.env.TELEGRAM_BOT_TOKEN ?? "",
+  chat: process.env.TELEGRAM_CHAT_ID ?? "",
+};
 const MAX_MESSAGE_BYTES = 1 << 14;
-function json(status: number, body: unknown): Response {return Response.json(body, {status});}
-export async function handleMessage(req: Request, config = messageConfig, send: typeof fetch = fetch): Promise<Response> {
+function json(status: number, body: unknown): Response {
+  return Response.json(body, { status });
+}
+export async function handleMessage(
+  req: Request,
+  config = messageConfig,
+  send: typeof fetch = fetch,
+): Promise<Response> {
   const TG_TOKEN = config.token;
   const TG_CHAT = config.chat;
   if (!TG_TOKEN || !TG_CHAT) {
@@ -18,8 +27,10 @@ export async function handleMessage(req: Request, config = messageConfig, send: 
     return json(400, { error: "invalid json" });
   }
   const message =
-    body && typeof body === "object" && typeof (body as Record<string, unknown>).message === "string"
-      ? ((body as Record<string, string>).message).trim()
+    body &&
+    typeof body === "object" &&
+    typeof (body as Record<string, unknown>).message === "string"
+      ? (body as Record<string, string>).message.trim()
       : "";
   if (!message) return json(400, { error: "missing 'message' field" });
 
@@ -43,13 +54,22 @@ export async function handleMessage(req: Request, config = messageConfig, send: 
   }
 }
 
-
 export function messageRequest(req: Request): Promise<Response> | Response {
-  if (new URL(req.url).pathname !== "/message") return new Response("not found", {status:404});
-  if (req.method !== "POST") return new Response("method not allowed", {status:405,headers:{Allow:"POST"}});
+  if (new URL(req.url).pathname !== "/message")
+    return new Response("not found", { status: 404 });
+  if (req.method !== "POST")
+    return new Response("method not allowed", {
+      status: 405,
+      headers: { Allow: "POST" },
+    });
   return handleMessage(req);
 }
 if (import.meta.main) {
-  const server = Bun.serve({hostname:"127.0.0.1",port:Number(process.env.MESSAGE_PORT ?? 3001),maxRequestBodySize:MAX_MESSAGE_BYTES,fetch:messageRequest});
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: Number(process.env.MESSAGE_PORT ?? 3001),
+    maxRequestBodySize: MAX_MESSAGE_BYTES,
+    fetch: messageRequest,
+  });
   console.log(`Message endpoint: http://127.0.0.1:${server.port}/message`);
 }

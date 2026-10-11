@@ -20,7 +20,7 @@ bun run start         # build and preview
 
 Use `bun run build` rather than invoking `zola build` directly. The TypeScript build script creates a temporary Zola workspace, copies authored content and templates, supplies the gallery index, and runs Zola. Zola's built-in highlighter uses the GitHub light/dark themes; the build script then minifies the final HTML. Bun bundles/minifies browser TypeScript and CSS; no framework or browser syntax highlighter is shipped.
 
-Each route has its own HTML file and renders its content before JavaScript runs. JavaScript adds theme switching, navigation controls, the gallery viewer, code copying, confetti, the visit counter, the message form, and `/yo`. Images in Markdown and gallery thumbnails use native lazy loading and asynchronous decoding. The logo loads eagerly. Gallery full-size images load on opening the viewer; adjacent photos preload afterward.
+Each route has its own HTML file and renders its content before JavaScript runs. JavaScript adds theme switching, navigation controls, the gallery viewer, code copying, confetti, the visit counter, the message form, and `/yo`. Images in Markdown use native lazy loading and asynchronous decoding. The logo and the first gallery thumbnails load eagerly; the rest load on near-scroll via IntersectionObserver, with a no-JavaScript fallback. Gallery full-size images load on opening the viewer; adjacent photos preload afterward.
 
 Production builds use `.build-cache.json` to reuse unchanged bundles, CSS, static files, individual thumbnails, and rendered pages. Missing or modified outputs are regenerated and removed inputs remove their outputs. Changes to build tooling, dependencies, Bun, or Zola invalidate the cache. `-f` clears `dist/` and rebuilds everything. A failed build invalidates the manifest.
 
@@ -44,7 +44,7 @@ imageAlt = "A description of the photo"
 
 Write the Markdown body after the frontmatter. The filename becomes the slug, available at `/blog/my-new-post` and `/blog/my-new-post/`. Posts sort by descending date, the homepage shows the latest five, and the archive groups them by year. Custom metadata belongs under `[extra]`.
 
-Add gallery images to `static/gallery/`. Numeric filenames sort descending, followed by non-numeric names alphabetically. Duplicate numeric photo IDs are rejected. Optional alt descriptions live in `content/gallery.json`, keyed by filename. JPEG/PNG previews are generated at up to 720px wide as WebP (quality 76) without enlarging smaller sources. Originals remain available. Viewer links such as `/gallery?photo=38` are preserved.
+Add gallery images to `static/gallery/`. Numeric filenames sort descending, followed by non-numeric names alphabetically. Duplicate numeric photo IDs are rejected. Optional alt descriptions live in `content/gallery.json`, keyed by filename. JPEG/PNG previews are generated at up to 480px wide as WebP (quality 65) without enlarging smaller sources. Originals remain available. Viewer links such as `/gallery?photo=38` are preserved.
 
 Add other pages as `content/<slug>.md` with `template = "page.html"`; `path` can override the route. Contact, gallery, and `/yo` use their existing dedicated routes. All public assets remain in `static/`, including fonts, icons, downloads, and robots.txt. Zola generates the sitemap and publishes its built-in RSS 2.0 feed at `/rss.xml`, containing the latest 20 dated posts. No custom feed template or XML postprocessing is used. `/yo` remains excluded from the sitemap and disallowed in robots.txt.
 
@@ -52,17 +52,12 @@ Add other pages as `content/<slug>.md` with `template = "page.html"`; `path` can
 
 Deploy only `dist/` to your static host. The preview server is optional; Zola and Bun are not needed to serve production pages.
 
-For Nginx, point `root` at the deployed `dist/` directory and use directory indexes and a real custom 404:
+See `nginx.conf.example` for a ready-to-use Nginx virtual host (HTTP→HTTPS redirect, directory indexes, custom 404, cache lifetimes, security headers, and the `/message` proxy). Point `root` at the deployed `dist/` directory:
 
-```nginx
-index index.html;
-error_page 404 /404.html;
-location / {
-    try_files $uri $uri/ =404;
-}
-location = /404.html {
-    internal;
-}
+```sh
+bun run build
+rsync -a --delete dist/ /var/www/oddknight.space/dist/
+sudo cp nginx.conf.example /etc/nginx/sites-available/oddknight.space
 ```
 
 The home-page form posts `{"message":"..."}` to `/message`. Telegram sending is a separate optional service:
@@ -71,15 +66,7 @@ The home-page form posts `{"message":"..."}` to `/message`. Telegram sending is 
 TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=... bun run serve:message
 ```
 
-Keep credentials in server environment variables. The service binds to `127.0.0.1:3001` by default; change it with `MESSAGE_PORT`. Configure your existing reverse proxy:
-
-```nginx
-location = /message {
-    client_max_body_size 16k;
-    proxy_pass http://127.0.0.1:3001;
-    proxy_set_header Host $host;
-}
-```
+Keep credentials in server environment variables. The service binds to `127.0.0.1:3001` by default; change it with `MESSAGE_PORT`. The `/message` proxy is already in `nginx.conf.example`.
 
 For local preview or development, set `MESSAGE_UPSTREAM=http://127.0.0.1:3001`. Without an upstream, the form keeps its appearance and reports a send failure. `PORT` controls the local static/development server port; it binds to loopback. Both preview and development accept extensionless routes and return HTTP 404 for unknown pages.
 
