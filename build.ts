@@ -239,6 +239,8 @@ export async function build(
     return result.outputs.map((file) => file.path);
   });
   const gallery = await galleryItems(staticFiles);
+  const THUMBNAIL_WIDTH = 480;
+  const THUMBNAIL_QUALITY = 65;
   // Conversions are cached individually; unrelated edits do not decode every photo.
   for (const source of staticFiles.filter(
     (file) =>
@@ -246,7 +248,13 @@ export async function build(
   )) {
     await cache.run(
       `thumbnail:${basename(source)}`,
-      await fingerprintFiles([source]),
+      fingerprint(
+        JSON.stringify([
+          await fingerprintFiles([source]),
+          THUMBNAIL_WIDTH,
+          THUMBNAIL_QUALITY,
+        ]),
+      ),
       async () => {
         const destination = join(
           DIST,
@@ -255,8 +263,11 @@ export async function build(
         );
         await mkdir(dirname(destination), { recursive: true });
         await new Bun.Image(source)
-          .resize(720, undefined, { fit: "inside", withoutEnlargement: true })
-          .webp({ quality: 76 })
+          .resize(THUMBNAIL_WIDTH, undefined, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .webp({ quality: THUMBNAIL_QUALITY })
           .write(destination);
         return [destination];
       },

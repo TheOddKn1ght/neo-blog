@@ -615,7 +615,7 @@ nav .nav-left a:hover .sitename { text-decoration: underline; }
     padding: 0;
     border: 0;
     border-radius: 10px;
-    background: transparent;
+    background: var(--code_bg);
     display: block;
     font: inherit;
     cursor: pointer;

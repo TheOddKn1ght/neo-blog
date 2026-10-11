@@ -10,8 +10,33 @@ export function installGallery(): void {
     const loaded = () => image.classList.add("loaded");
     image.addEventListener("load", loaded);
     image.addEventListener("error", loaded);
-    if (image.complete) loaded();
+    if (image.complete && image.hasAttribute("src")) loaded();
   });
+  const deferred = thumbnails.filter((image) =>
+    image.hasAttribute("data-thumb"),
+  );
+  if (deferred.length > 0) {
+    const reveal = (image: HTMLImageElement) => {
+      image.src = image.dataset.thumb!;
+      image.removeAttribute("data-thumb");
+    };
+    if ("IntersectionObserver" in window) {
+      const watcher = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const image = entry.target as HTMLImageElement;
+            watcher.unobserve(image);
+            reveal(image);
+          }
+        },
+        { rootMargin: "150px" },
+      );
+      deferred.forEach((image) => watcher.observe(image));
+    } else {
+      deferred.forEach(reveal);
+    }
+  }
   let index: number | null = null;
   let target = 0;
   let modal: HTMLDivElement | undefined;
